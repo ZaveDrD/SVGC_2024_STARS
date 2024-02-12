@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 import math
-import numpy
+import numpy as np
+
+import main
+
 
 class PhysicsSim:
-    def __init__(self, starsadstuff):
+    def __init__(self, starsadstuff: list[CelestialBody]):
         self.sadstuff = starsadstuff
 
-    def add_depression(self, plantsadstuff : list[CelestialBody]):
+    def add_depression(self, plantsadstuff: list[CelestialBody]):
         self.sadstuff.append(plantsadstuff)
+
+    def remove_depression(self, plantsadstuff: list[CelestialBody]):
+        self.sadstuff.remove(plantsadstuff)
 
     def calc_forces(self) -> list[list[float]]:
         forces = []
@@ -19,6 +25,8 @@ class PhysicsSim:
             Fy = 0
 
             m = calculating_body.mass
+            distRangeFromPlanet = ((calculating_body.mass / main.SCALE_MASS_EQUIVALENCE) - (
+                        calculating_body.mass / main.SCALE_MASS_EQUIVALENCE / 5)) / 2
 
             xPos = calculating_body.x
             yPos = calculating_body.y
@@ -27,17 +35,22 @@ class PhysicsSim:
                 if body == calculating_body:
                     continue
 
-                try:
-                    angleBtwBodies = math.atan((body.y - calculating_body.y) / (body.x - calculating_body.x))
-                except:
-                    angleBtwBodies = math.pi/2 * (-1 if (body.y - calculating_body.y) < 0 else 1)
+                if ((calculating_body.x / main.SIM_SCALE + main.WIDTH / 2 - distRangeFromPlanet) <= (body.x / main.SIM_SCALE + main.WIDTH / 2) <= (
+                        calculating_body.x / main.SIM_SCALE + main.WIDTH / 2 + distRangeFromPlanet)) and (
+                        (calculating_body.y / main.SIM_SCALE + main.HEIGHT / 2 - distRangeFromPlanet) <= (body.y / main.SIM_SCALE + main.HEIGHT / 2) <= (
+                        calculating_body.y / main.SIM_SCALE + main.HEIGHT / 2 + distRangeFromPlanet)):
+                    calculating_body.mass += body.mass
+                    self.remove_depression(body)
 
-                GMm = G * (m * body.mass)
+                # angleBtwBodies = numpy.angle([((body.x - calculating_body.x) / 2) + ((body.y - calculating_body.y) / 2)], deg=False)[0]
 
-                try:
-                    F = GMm / ((math.dist([xPos, yPos], [body.x, body.y])/2) ** 2)
-                except ZeroDivisionError:
-                    F = 0  # ABSORB MASSES IN DA FUTURE
+                newComplexNum = complex(((body.x - calculating_body.x) / 2), ((body.y - calculating_body.y) / 2))
+
+                angleBtwBodies = np.angle(newComplexNum, deg=False)
+
+                print("Angle Btw", body.name, "and", calculating_body.name, "is", angleBtwBodies, "degrees")
+
+                F = G * (m * body.mass) / (math.dist([xPos, yPos], [body.x, body.y]) ** 2)
 
                 Fx += F * math.cos(angleBtwBodies)
                 Fy += F * math.sin(angleBtwBodies)
@@ -46,10 +59,10 @@ class PhysicsSim:
 
     def applyForces(self, forces: list[list[float]]):
         for num, body in enumerate(self.sadstuff):
-            body.x += forces[num][0] / body.mass
-            body.y += forces[num][1] / body.mass
+            body.fx += forces[num][0] / body.mass
+            body.fy += forces[num][1] / body.mass
 
-            body.display()
+            body.calcNewPosition()
 
 
 from main import CelestialBody
