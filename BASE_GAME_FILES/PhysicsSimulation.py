@@ -48,8 +48,6 @@ class PhysicsSim:
 
                 angleBtwBodies = np.angle(newComplexNum, deg=False)
 
-                print("Angle Btw", body.name, "and", calculating_body.name, "is", angleBtwBodies, "degrees")
-
                 F = G * (m * body.mass) / (math.dist([xPos, yPos], [body.x, body.y]) ** 2)
 
                 Fx += F * math.cos(angleBtwBodies)
