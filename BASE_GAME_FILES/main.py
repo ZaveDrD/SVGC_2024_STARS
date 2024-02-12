@@ -6,32 +6,32 @@ import cv2
 import mediapipe as mp
 import HandTracking.HandTrackingModule as htm
 import time
+import consts
 
+
+
+# Setup
 atexit.register(lambda: [pygame.quit(), sys.exit()])
-
 pygame.display.init()
+
+
+# Variables
 WIDTH, HEIGHT = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
 
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 
-DEFAULT_SIM_SCALE = 10 ** 10 * 3
-DEFAULT_SCALE_MASS_EQUIVALENCE = 10 ** 28 * 150
-
-SIM_SCALE = DEFAULT_SIM_SCALE
-SCALE_MASS_EQUIVALENCE = DEFAULT_SCALE_MASS_EQUIVALENCE
+scale_mass_equivalence = consts.DEFAULT_SCALE_MASS_EQUIVALENCE
+sim_scale = consts.DEFAULT_SIM_SCALE
 
 offsetX, offsetY = 0, 0
-moveControlSpeed = 0.5
+moveControlSpeed = 1
 
 zoom = 1
 zoomInc = 1 * 10 ** -3
 
+time_inc = consts.DEFAULT_TIME_INC
 current_time = 0
-DEFAULT_TIME_INC = 1 * 10 ** 17
-
-TIME_INC = DEFAULT_TIME_INC
 time_mult = 1
-TIME_MULT_INC = 10 ** -2
 
 
 class CelestialBody:
@@ -55,10 +55,10 @@ class CelestialBody:
 
     def display(self):
         # print(f"\n{ self.name = }, { self.x = }, { self.y = }")
-        pygame.draw.circle(screen, self.color, center=(self.x / SIM_SCALE + WIDTH / 2 + offsetX, self.y / SIM_SCALE + HEIGHT / 2 + offsetY), radius=self.mass / SCALE_MASS_EQUIVALENCE)
+        pygame.draw.circle(screen, self.color, center=(self.x / sim_scale + WIDTH / 2 + offsetX, self.y / sim_scale + HEIGHT / 2 + offsetY), radius=self.mass / scale_mass_equivalence)
 
     def calcNewPosition(self):
-        deltaT = TIME_INC
+        deltaT = time_inc
 
         self.ax = self.fx / self.mass
         self.ay = self.fy / self.mass
@@ -93,11 +93,16 @@ if __name__ == "__main__":
     prevFrameHandLandmarks = []
 
     while True:
-        TIME_INC = DEFAULT_TIME_INC * time_mult
-        current_time += TIME_INC
+        success, img = cap.read()
 
-        SIM_SCALE = DEFAULT_SIM_SCALE * zoom
-        SCALE_MASS_EQUIVALENCE = DEFAULT_SCALE_MASS_EQUIVALENCE * zoom
+        img = handDetector.FindHands(img)
+        currentFrameHandLandmarks = handDetector.ConstructLandmarkList(img)
+
+        time_inc = consts.DEFAULT_TIME_INC * time_mult
+        current_time += time_inc
+
+        sim_scale = consts.DEFAULT_SIM_SCALE * zoom
+        scale_mass_equivalence = consts.DEFAULT_SCALE_MASS_EQUIVALENCE * zoom
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -124,33 +129,29 @@ if __name__ == "__main__":
             zoom += zoomInc
 
         if keys[pygame.K_LEFTBRACKET]:
-            time_mult -= TIME_MULT_INC
+            time_mult -= consts.TIME_MULT_INC
         if keys[pygame.K_RIGHTBRACKET]:
-            time_mult += TIME_MULT_INC
+            time_mult += consts.TIME_MULT_INC
 
         screen.fill("#5a82c2")
 
         phys_sim.applyForces(phys_sim.calc_forces())
 
-        # success, img = cap.read()  # PROBLEMATIC LINE (DECREASES PERFORMANCE BY A MILLION)
+        for handNum in range(0, len(currentFrameHandLandmarks)):
+            for lm in range(0, len(currentFrameHandLandmarks[handNum])):
+                try:
+                    if -20 < (prevFrameHandLandmarks[handNum][lm][1] - currentFrameHandLandmarks[handNum][lm][1]) < 20:
+                        currentFrameHandLandmarks[handNum][lm][1] = prevFrameHandLandmarks[handNum][lm][1]
+                except:
+                    print("Error: Non Existant Point On Hand")
 
-        # img = handDetector.FindHands(img)
-        # currentFrameHandLandmarks = handDetector.ConstructLandmarkList(img)
+                for lm_other in range(0, len(currentFrameHandLandmarks[handNum])):
+                    if lm == 0 and lm_other == (1 or 5 or 9 or 13 or 17):
+                        pygame.draw.line(screen, [255, 255, 255], [currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4], [currentFrameHandLandmarks[handNum][lm_other][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm_other][2] * 3 - HEIGHT / 4], 5)
 
-        # for handNum in range(0, len(currentFrameHandLandmarks)):
-        #     for lm in range(0, len(currentFrameHandLandmarks[handNum])):
-        #         try:
-        #             if -10 < (prevFrameHandLandmarks[handNum][lm][1] - currentFrameHandLandmarks[handNum][lm][1]) < 10:
-        #                 currentFrameHandLandmarks[handNum][lm][1] = prevFrameHandLandmarks[handNum][lm][1]
-        #         except:
-        #             print("Error: Non Existant Point On Hand")
-        #
-        #         # for lm_other in range(0, len(currentFrameHandLandmarks[handNum])):
-        #         #     if lm == 0 and lm_other == (1 or 5 or 9 or 13 or 17):
-        #         #         pygame.draw.line(screen, [255, 255, 255], [currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4], [currentFrameHandLandmarks[handNum][lm_other][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm_other][2] * 3 - HEIGHT / 4], 5)
-        #
-        #         pygame.draw.circle(screen, [0, 0, 0], center=(currentFrameHandLandmarks[handNum][lm][1] * -2 + .9 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 2 - HEIGHT / 2), radius=10)
-        #
-        # prevFrameHandLandmarks = currentFrameHandLandmarks
+                pygame.draw.circle(screen, [0, 0, 0], center=(currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4), radius=10)
+
+        prevFrameHandLandmarks = currentFrameHandLandmarks
+
 
         pygame.display.update()
