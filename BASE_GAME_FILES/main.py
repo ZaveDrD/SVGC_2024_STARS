@@ -1,13 +1,9 @@
 import pygame
-import PhysicsSimulation
 import atexit
 import sys
 import cv2
-import mediapipe as mp
 import HandTracking.HandTrackingModule as htm
-import time
 import consts
-
 
 
 # Setup
@@ -35,29 +31,70 @@ time_mult = 1
 
 
 class CelestialBody:
-    def __init__(self, name, color, bodyType, mass, force, acceleration, velocity, pos, *args):
+    """
+    # CelestialBody
+    A class for all celestial bodies including stars, planets etc. This class can be used for
+    tracking their movement and forces acting upon them.
+    """
+    def __init__(self, name: str, color: list[int] | str, bodyType: str, mass: float, force: list[float], 
+                 acceleration: list[float], velocity: list[float], pos: list[float], *args) -> None:
+        """
+        ## Params
+        ### name
+            (str) The type of celestial body; star, planet, moon, asteroid etc.]
+        ### color
+            (str | list[int]) The color of the body, either in hex or rgb. Used when displaying the body.
+        ### bodyType
+            (str) I have no idea what this does; need to ask Zave
+        ### mass
+            (float) The mass of the body in kilograms
+        ### force
+            (float[]) The force currently acting on the object in newtons. First element is x, second
+                      is y. Positive is up and right, negative is left and down.
+        ### acceleration
+            (float[]) The acceleration of the object; First element is y, second is x. Positive is up and
+                       left, negative is down and right
+        ### velocity
+            (float[]) The velocity of the object; First element is y, second is x. Positive is up and
+                       left, negative is down and right
+        ### pos
+            (float[]) The position of the object; First element is y, second is x.
+        """
+        if isinstance(color, str):
+            color = [int(color.replace('#', '')[i:i+2], 16) for i in range(0, 6, 2)]
         self.name: str = name
         self.color: list[int] = color
         self.type: str = bodyType
         self.mass: float = mass
-        self.force: float = force
-        self.acceleration: float = acceleration
-        self.velocity: float = velocity
-        self.pos: float = pos
+        self.force: list[float] = force
+        self.acceleration: list[float] = acceleration
+        self.velocity: list[float] = velocity
+        self.pos: list[float] = pos
         self.x: float = pos[0]
         self.y: float = pos[1]
         self.fx: float = force[0]
         self.fy: float = force[1]
-        self.ax = acceleration[0]
-        self.ay = acceleration[1]
-        self.vx = velocity[0]
-        self.vy = velocity[1]
+        self.ax: float = acceleration[0]
+        self.ay: float = acceleration[1]
+        self.vx: float = velocity[0]
+        self.vy: float = velocity[1]
 
-    def display(self):
+    def display(self) -> None:
+        """
+        Draws the body to the screen as a circle
+        """
         # print(f"\n{ self.name = }, { self.x = }, { self.y = }")
         pygame.draw.circle(screen, self.color, center=(self.x / sim_scale + WIDTH / 2 + offsetX, self.y / sim_scale + HEIGHT / 2 + offsetY), radius=self.mass / scale_mass_equivalence)
 
-    def calcNewPosition(self):
+    def calcNewPosition(self, display: bool = True) -> None:
+        """
+        Calculates position of the object 1 frame (unit of time) later. Changes are based on velocity,
+        acceleration and force.
+        ## Params
+        ### display
+                (bool) True by default. If true, the object will be drawn after calculations, otherwise it will
+                       not
+        """
         deltaT = time_inc
 
         self.ax = self.fx / self.mass
@@ -74,10 +111,12 @@ class CelestialBody:
         self.y += self.vy * deltaT
 
         # print(f"\n{ self.name = }, \nPOSITIONS: { self.x = }, { self.y = }, \nVELOCITIES: { self.vx = }, { self.vy }, \nACCELERATION: { self.ax }, { self.ay }, \nFORCES: { self.fx = }, { self.fy }")
-        self.display()
+        if display:
+            self.display()
 
 
 if __name__ == "__main__":
+    import PhysicsSimulation
     cap = cv2.VideoCapture(0)
     handDetector = htm.HandDetector()
 
