@@ -90,6 +90,7 @@ if __name__ == "__main__":
                         # CelestialBody('EARTH', "", 5.97 * 10 ** 24, 0, [0, 0])
 
     phys_sim = PhysicsSimulation.PhysicsSim(celestial_bodies)
+    prevFrameHandLandmarks = []
 
     while True:
         success, img = cap.read()
@@ -138,7 +139,19 @@ if __name__ == "__main__":
 
         for handNum in range(0, len(currentFrameHandLandmarks)):
             for lm in range(0, len(currentFrameHandLandmarks[handNum])):
-                print(currentFrameHandLandmarks[handNum][lm])
-                pygame.draw.circle(screen, [0, 0, 0], center=(currentFrameHandLandmarks[handNum][lm][1] * -1.5 + 2.5 * WIDTH / 3, currentFrameHandLandmarks[handNum][lm][2] * 1.5), radius=10)
+                try:
+                    if -20 < (prevFrameHandLandmarks[handNum][lm][1] - currentFrameHandLandmarks[handNum][lm][1]) < 20:
+                        currentFrameHandLandmarks[handNum][lm][1] = prevFrameHandLandmarks[handNum][lm][1]
+                except:
+                    print("Error: Non Existant Point On Hand")
+
+                for lm_other in range(0, len(currentFrameHandLandmarks[handNum])):
+                    if lm == 0 and lm_other == (1 or 5 or 9 or 13 or 17):
+                        pygame.draw.line(screen, [255, 255, 255], [currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4], [currentFrameHandLandmarks[handNum][lm_other][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm_other][2] * 3 - HEIGHT / 4], 5)
+
+                pygame.draw.circle(screen, [0, 0, 0], center=(currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4), radius=10)
+
+        prevFrameHandLandmarks = currentFrameHandLandmarks
+
 
         pygame.display.update()
