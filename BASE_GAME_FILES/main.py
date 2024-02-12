@@ -2,6 +2,10 @@ import pygame
 import PhysicsSimulation
 import atexit
 import sys
+import cv2
+import mediapipe as mp
+import HandTracking.HandTrackingModule as htm
+import time
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
 
@@ -69,11 +73,14 @@ class CelestialBody:
         self.x += self.vx * deltaT
         self.y += self.vy * deltaT
 
-        print(f"\n{ self.name = }, \nPOSITIONS: { self.x = }, { self.y = }, \nVELOCITIES: { self.vx = }, { self.vy }, \nACCELERATION: { self.ax }, { self.ay }, \nFORCES: { self.fx = }, { self.fy }")
+        # print(f"\n{ self.name = }, \nPOSITIONS: { self.x = }, { self.y = }, \nVELOCITIES: { self.vx = }, { self.vy }, \nACCELERATION: { self.ax }, { self.ay }, \nFORCES: { self.fx = }, { self.fy }")
         self.display()
 
 
 if __name__ == "__main__":
+    cap = cv2.VideoCapture(0)
+    handDetector = htm.HandDetector()
+
     celestial_bodies = [
             CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000]),
             CelestialBody('SUN 1', [0, 0, 0], "", 2 * 10 ** 30, [0, 0], [0, 0], [-5 * 10 ** -10, 0], [0, -2000000000000]),
@@ -85,6 +92,11 @@ if __name__ == "__main__":
     phys_sim = PhysicsSimulation.PhysicsSim(celestial_bodies)
 
     while True:
+        success, img = cap.read()
+
+        img = handDetector.FindHands(img)
+        currentFrameHandLandmarks = handDetector.ConstructLandmarkList(img)
+
         TIME_INC = DEFAULT_TIME_INC * time_mult
         current_time += TIME_INC
 
@@ -123,5 +135,10 @@ if __name__ == "__main__":
         screen.fill("#5a82c2")
 
         phys_sim.applyForces(phys_sim.calc_forces())
+
+        for handNum in range(0, len(currentFrameHandLandmarks)):
+            for lm in range(0, len(currentFrameHandLandmarks[handNum])):
+                print(currentFrameHandLandmarks[handNum][lm])
+                pygame.draw.circle(screen, [0, 0, 0], center=(currentFrameHandLandmarks[handNum][lm][1] * -1.5 + 2.5 * WIDTH / 3, currentFrameHandLandmarks[handNum][lm][2] * 1.5), radius=10)
 
         pygame.display.update()
