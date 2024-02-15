@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 import math
 import numpy as np
+from typing import Type
 
-import main
 
+CelestialBody = Type["main.CelestialBody"]
 
 class PhysicsSim:
     def __init__(self, starsadstuff: list[CelestialBody]):
@@ -61,6 +60,4 @@ class PhysicsSim:
             body.fy += forces[num][1] / body.mass
 
             body.calcNewPosition()
-
-
-from main import CelestialBody
+            
