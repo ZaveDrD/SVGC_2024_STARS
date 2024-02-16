@@ -2,36 +2,15 @@ import pygame
 import PhysicsSimulation
 import atexit
 import sys
-import cv2
-import mediapipe as mp
-import HandTracking.HandTrackingModule as htm
-import time
+import Actor as A
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
 
 pygame.display.init()
 WIDTH, HEIGHT = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
-
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 
-DEFAULT_SIM_SCALE = 10 ** 10 * 3
-DEFAULT_SCALE_MASS_EQUIVALENCE = 10 ** 28 * 150
-
-SIM_SCALE = DEFAULT_SIM_SCALE
-SCALE_MASS_EQUIVALENCE = DEFAULT_SCALE_MASS_EQUIVALENCE
-
-offsetX, offsetY = 0, 0
-moveControlSpeed = 0.5
-
-zoom = 1
-zoomInc = 1 * 10 ** -3
-
-current_time = 0
-DEFAULT_TIME_INC = 1 * 10 ** 17
-
-TIME_INC = DEFAULT_TIME_INC
-time_mult = 1
-TIME_MULT_INC = 10 ** -2
+A.WIDTH, A.HEIGHT = WIDTH, HEIGHT
 
 
 class CelestialBody:
@@ -55,10 +34,10 @@ class CelestialBody:
 
     def display(self):
         # print(f"\n{ self.name = }, { self.x = }, { self.y = }")
-        pygame.draw.circle(screen, self.color, center=(self.x / SIM_SCALE + WIDTH / 2 + offsetX, self.y / SIM_SCALE + HEIGHT / 2 + offsetY), radius=self.mass / SCALE_MASS_EQUIVALENCE)
+        pygame.draw.circle(screen, self.color, center=(self.x / A.SIM_SCALE + WIDTH / 2 + A.offsetX, self.y / A.SIM_SCALE + HEIGHT / 2 + A.offsetY), radius=self.mass / A.SCALE_MASS_EQUIVALENCE)
 
     def calcNewPosition(self):
-        deltaT = TIME_INC
+        deltaT = A.TIME_INC
 
         self.ax = self.fx / self.mass
         self.ay = self.fy / self.mass
@@ -78,26 +57,21 @@ class CelestialBody:
 
 
 if __name__ == "__main__":
-    cap = cv2.VideoCapture(0)
-    handDetector = htm.HandDetector()
-
     celestial_bodies = [
-            CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000]),
-            CelestialBody('SUN 1', [0, 0, 0], "", 2 * 10 ** 30, [0, 0], [0, 0], [-5 * 10 ** -10, 0], [0, -2000000000000]),
-                        ]
-
-                        # CelestialBody('SUN', "", 2 * 10 ** 30, 0, [149_600_000_000, 0]),
-                        # CelestialBody('EARTH', "", 5.97 * 10 ** 24, 0, [0, 0])
+        CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000]),
+        CelestialBody('SUN 1', [0, 0, 0], "", 2 * 10 ** 30, [0, 0], [0, 0], [-5 * 10 ** -10, 0], [0, -2000000000000])
+    ]
 
     phys_sim = PhysicsSimulation.PhysicsSim(celestial_bodies)
-    prevFrameHandLandmarks = []
 
     while True:
-        TIME_INC = DEFAULT_TIME_INC * time_mult
-        current_time += TIME_INC
+        print(A.handPositions)
 
-        SIM_SCALE = DEFAULT_SIM_SCALE * zoom
-        SCALE_MASS_EQUIVALENCE = DEFAULT_SCALE_MASS_EQUIVALENCE * zoom
+        A.TIME_INC = A.DEFAULT_TIME_INC * A.time_mult
+        A.current_time += A.TIME_INC
+
+        A.SIM_SCALE = A.DEFAULT_SIM_SCALE * A.zoom
+        A.SCALE_MASS_EQUIVALENCE = A.DEFAULT_SCALE_MASS_EQUIVALENCE * A.zoom
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -107,50 +81,39 @@ if __name__ == "__main__":
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_UP]:
-            offsetY += moveControlSpeed
+            A.offsetY += A.moveControlSpeed
         if keys[pygame.K_DOWN]:
-            offsetY -= moveControlSpeed
+            A.offsetY -= A.moveControlSpeed
         if keys[pygame.K_LEFT]:
-            offsetX += moveControlSpeed
+            A.offsetX += A.moveControlSpeed
         if keys[pygame.K_RIGHT]:
-            offsetX -= moveControlSpeed
+            A.offsetX -= A.moveControlSpeed
 
         if keys[pygame.K_EQUALS]:
-            if zoom - zoomInc > 0:
-                zoom -= zoomInc
+            if A.zoom - A.zoomInc > 0:
+                A.zoom -= A.zoomInc
             else:
-                zoom = 10 ** -10
+                A.zoom = 10 ** -10
         if keys[pygame.K_MINUS]:
-            zoom += zoomInc
+            A.zoom += A.zoomInc
 
         if keys[pygame.K_LEFTBRACKET]:
-            time_mult -= TIME_MULT_INC
+            A.time_mult -= A.TIME_MULT_INC
         if keys[pygame.K_RIGHTBRACKET]:
-            time_mult += TIME_MULT_INC
+            A.time_mult += A.TIME_MULT_INC
 
         screen.fill("#5a82c2")
 
+        for handNum in range(0, len(A.handPositions)):
+            for lm in range(0, len(A.handPositions[handNum])):
+                # for lm_other in range(0, len(currentFrameHandLandmarks[handNum])):
+                #     if lm == 0 and lm_other == (1 or 5 or 9 or 13 or 17):
+                #         pygame.draw.line(screen, [255, 255, 255], [currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4], [currentFrameHandLandmarks[handNum][lm_other][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm_other][2] * 3 - HEIGHT / 4], 5)
+
+                pygame.draw.circle(screen, [0, 0, 0], center=(
+                    A.handPositions[handNum][lm][1] * -2 + .9 * WIDTH,
+                    A.handPositions[handNum][lm][2] * 2 - HEIGHT / 2), radius=10)
+
         phys_sim.applyForces(phys_sim.calc_forces())
-
-        # success, img = cap.read()  # PROBLEMATIC LINE (DECREASES PERFORMANCE BY A MILLION)
-
-        # img = handDetector.FindHands(img)
-        # currentFrameHandLandmarks = handDetector.ConstructLandmarkList(img)
-
-        # for handNum in range(0, len(currentFrameHandLandmarks)):
-        #     for lm in range(0, len(currentFrameHandLandmarks[handNum])):
-        #         try:
-        #             if -10 < (prevFrameHandLandmarks[handNum][lm][1] - currentFrameHandLandmarks[handNum][lm][1]) < 10:
-        #                 currentFrameHandLandmarks[handNum][lm][1] = prevFrameHandLandmarks[handNum][lm][1]
-        #         except:
-        #             print("Error: Non Existant Point On Hand")
-        #
-        #         # for lm_other in range(0, len(currentFrameHandLandmarks[handNum])):
-        #         #     if lm == 0 and lm_other == (1 or 5 or 9 or 13 or 17):
-        #         #         pygame.draw.line(screen, [255, 255, 255], [currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4], [currentFrameHandLandmarks[handNum][lm_other][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm_other][2] * 3 - HEIGHT / 4], 5)
-        #
-        #         pygame.draw.circle(screen, [0, 0, 0], center=(currentFrameHandLandmarks[handNum][lm][1] * -2 + .9 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 2 - HEIGHT / 2), radius=10)
-        #
-        # prevFrameHandLandmarks = currentFrameHandLandmarks
 
         pygame.display.update()
