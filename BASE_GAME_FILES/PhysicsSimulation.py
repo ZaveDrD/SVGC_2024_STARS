@@ -16,7 +16,7 @@ class PhysicsSim:
     def remove_depression(self, plantsadstuff: list[CelestialBody]):
         self.sadstuff.remove(plantsadstuff)
 
-    def calc_forces(self) -> list[list[float]]:
+    def calc_forces(self) -> list[list[float]]: # COULD BE OPTIMISED 
         forces = []
         G = 6.67 * 10 ** -11
 
@@ -43,7 +43,6 @@ class PhysicsSim:
                     self.remove_depression(body)
 
                 newComplexNum = complex(((body.x - calculating_body.x) / 2), ((body.y - calculating_body.y) / 2))
-
                 angleBtwBodies = np.angle(newComplexNum, deg=False)
 
                 F = G * (m * body.mass) / (math.dist([xPos, yPos], [body.x, body.y]) ** 2)

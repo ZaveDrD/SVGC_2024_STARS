@@ -3,6 +3,10 @@ import PhysicsSimulation
 import atexit
 import sys
 import Actor as A
+import threading
+import HandTrackingSim
+from typing import Callable
+import time
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
 
@@ -11,6 +15,51 @@ WIDTH, HEIGHT = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.ge
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 
 A.WIDTH, A.HEIGHT = WIDTH, HEIGHT
+hands: list = []
+
+
+class Gesture:
+    def __init__(self, name, detector: Callable[[list[list[list[float]]]], bool | int]) -> None:
+        self.name = name
+        self.detector = detector
+
+        self.duration = 0
+        self.gestureStart = None
+
+    def __resetGesture(self):
+        self.duration = 0
+
+    def detect(self, hands: list[list[list[int]]]) -> bool | int:
+        active = self.detector(hands)
+        if not active:
+            self.__resetGesture()
+        else:
+            if not self.gestureStart:
+                self.gestureStart = time.time()
+            self.duration = time.time() - self.gestureStart
+        return active
+
+
+class Hand:
+    def __init__(self, landmarks: list[list[int]], gestures: list[Gesture]):
+        self.landmarks = landmarks
+        self.gestures = gestures
+
+    def CheckGestures(self):
+        for gesture in self.gestures:
+            gesture.detect([self.landmarks])
+
+hands = [Hand()]
+
+
+def get_hands():
+    while True:
+        global hands
+        hands = HandTrackingSim.get_hands()
+        print(f"{hands = }")
+
+
+threading.Thread(target=get_hands).start()
 
 
 class CelestialBody:
@@ -34,7 +83,9 @@ class CelestialBody:
 
     def display(self):
         # print(f"\n{ self.name = }, { self.x = }, { self.y = }")
-        pygame.draw.circle(screen, self.color, center=(self.x / A.SIM_SCALE + WIDTH / 2 + A.offsetX, self.y / A.SIM_SCALE + HEIGHT / 2 + A.offsetY), radius=self.mass / A.SCALE_MASS_EQUIVALENCE)
+        pygame.draw.circle(screen, self.color, center=(
+        self.x / A.SIM_SCALE + WIDTH / 2 + A.offsetX, self.y / A.SIM_SCALE + HEIGHT / 2 + A.offsetY),
+                           radius=self.mass / A.SCALE_MASS_EQUIVALENCE)
 
     def calcNewPosition(self):
         deltaT = A.TIME_INC
@@ -57,16 +108,14 @@ class CelestialBody:
 
 
 if __name__ == "__main__":
-    celestial_bodies = [
+    initial_celestial_bodies = [
         CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000]),
-        CelestialBody('SUN 1', [0, 0, 0], "", 2 * 10 ** 30, [0, 0], [0, 0], [-5 * 10 ** -10, 0], [0, -2000000000000])
+        CelestialBody('SUN 1', [0, 0, 0], "", 20 * 10 ** 30, [0, 0], [0, 0], [0, 0], [0, -2000000000000])
     ]
 
-    phys_sim = PhysicsSimulation.PhysicsSim(celestial_bodies)
+    phys_sim = PhysicsSimulation.PhysicsSim(initial_celestial_bodies)
 
     while True:
-        print(A.handPositions)
-
         A.TIME_INC = A.DEFAULT_TIME_INC * A.time_mult
         A.current_time += A.TIME_INC
 
@@ -104,15 +153,15 @@ if __name__ == "__main__":
 
         screen.fill("#5a82c2")
 
-        for handNum in range(0, len(A.handPositions)):
-            for lm in range(0, len(A.handPositions[handNum])):
+        for hand in hands:
+            for lm in hand:
                 # for lm_other in range(0, len(currentFrameHandLandmarks[handNum])):
                 #     if lm == 0 and lm_other == (1 or 5 or 9 or 13 or 17):
                 #         pygame.draw.line(screen, [255, 255, 255], [currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4], [currentFrameHandLandmarks[handNum][lm_other][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm_other][2] * 3 - HEIGHT / 4], 5)
 
                 pygame.draw.circle(screen, [0, 0, 0], center=(
-                    A.handPositions[handNum][lm][1] * -2 + .9 * WIDTH,
-                    A.handPositions[handNum][lm][2] * 2 - HEIGHT / 2), radius=10)
+                    lm[1] * (-WIDTH / 640) + WIDTH,
+                    lm[2] * (HEIGHT / 480)), radius=10)
 
         phys_sim.applyForces(phys_sim.calc_forces())
 

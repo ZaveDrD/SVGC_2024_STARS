@@ -1,4 +1,4 @@
-import HandTrackingSim as hsm
+# import HandTrackingSim as hsm
 
 DEFAULT_SIM_SCALE = 10 ** 10 * 3
 DEFAULT_SCALE_MASS_EQUIVALENCE = 10 ** 28 * 150
@@ -21,4 +21,4 @@ TIME_INC = DEFAULT_TIME_INC
 time_mult = 1
 TIME_MULT_INC = 10 ** -2
 
-handPositions = hsm.handPositions
+# handPositions = hsm.handPositions

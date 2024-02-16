@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import time
+import os
 
 cap = cv2.VideoCapture(0)
 
@@ -17,16 +18,16 @@ while True:
     results = hands.process(imgRGB)
 
     if results.multi_hand_landmarks:
-        for handLms in results.multi_hand_landmarks:
+        for hand, handLms in enumerate(results.multi_hand_landmarks):
+            print("Hand: ", hand, "Finger", handLms.landmark[0].x, handLms.landmark[0].y)
             for id, lm in enumerate(handLms.landmark):
                 h, w, c = img.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
-                print("\nID:", id, "\n Landmarks (in px): \nx:", cx, "\ny:", cy, "\nz (in ratio):", lm.z)
-
+                #print("\nHand:", hand, "\nID:", id, "\n Landmarks (in px): \nx:", cx, "\ny:", cy, "\nz (in ratio):", lm.z)
                 cv2.putText(img, str(id), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 0), 1)
 
-                if id == 0:
-                    cv2.circle(img, (cx, cy), 25, (255, 255, 0), cv2.FILLED) # THS IS HOW TO DETECT CERTAIN ID'S AND USE THEM TO DO STUFF
+                # if id == 0:
+                #     cv2.circle(img, (cx, cy), 25, (255, 255, 0), cv2.FILLED) # THS IS HOW TO DETECT CERTAIN ID'S AND USE THEM TO DO STUFF
 
             mpDrawHands.draw_landmarks(img, handLms, mpHands.HAND_CONNECTIONS)
 
