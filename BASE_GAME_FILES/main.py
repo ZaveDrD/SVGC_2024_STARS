@@ -49,12 +49,19 @@ class Hand:
         for gesture in self.gestures:
             gesture.detect([self.landmarks])
 
-hands = [Hand()]
+
+class Hands:
+    def __init__(self, handList: list[Hand], twoHandGestures: list[Gesture]):
+        self.handList = handList
+        self.twoHandGestures = twoHandGestures
+
+
+# hands = [Hand()]
 
 
 def get_hands():
+    global hands
     while True:
-        global hands
         hands = HandTrackingSim.get_hands()
         print(f"{hands = }")
 
@@ -84,7 +91,7 @@ class CelestialBody:
     def display(self):
         # print(f"\n{ self.name = }, { self.x = }, { self.y = }")
         pygame.draw.circle(screen, self.color, center=(
-        self.x / A.SIM_SCALE + WIDTH / 2 + A.offsetX, self.y / A.SIM_SCALE + HEIGHT / 2 + A.offsetY),
+            self.x / A.SIM_SCALE + WIDTH / 2 + A.offsetX, self.y / A.SIM_SCALE + HEIGHT / 2 + A.offsetY),
                            radius=self.mass / A.SCALE_MASS_EQUIVALENCE)
 
     def calcNewPosition(self):

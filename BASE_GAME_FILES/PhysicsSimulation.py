@@ -26,7 +26,7 @@ class PhysicsSim:
 
             m = calculating_body.mass
             distRangeFromPlanet = ((calculating_body.mass / SCALE_MASS_EQUIVALENCE) - (
-                        calculating_body.mass / SCALE_MASS_EQUIVALENCE / 5)) / 2
+                        calculating_body.mass / SCALE_MASS_EQUIVALENCE / 5)) / .9
 
             xPos = calculating_body.x
             yPos = calculating_body.y
