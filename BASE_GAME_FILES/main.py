@@ -5,6 +5,7 @@ import sys
 import Actor as A
 import threading
 import HandTrackingSim
+import math
 from typing import Callable
 import time
 
@@ -17,53 +18,135 @@ screen = pygame.display.set_mode([WIDTH, HEIGHT])
 A.WIDTH, A.HEIGHT = WIDTH, HEIGHT
 hands: list = []
 
+gestures = {
+    #   True      ->      Less Than        ->     dist < X
+    #   False     ->      Greater Than     ->     dist > X
 
-class Gesture:
-    def __init__(self, name, detector: Callable[[list[list[list[float]]]], bool | int]) -> None:
-        self.name = name
-        self.detector = detector
+    'pinch': [
+        [[None, 4], [None, 8], 50, True],
+        [[None, 3], [None, 7], 40, False]
+    ],
+    'Finger Gun': [
+        [[None, 8], [None, 12], 60, True],
+        [[None, 7], [None, 11], 60, True],
+        [[None, 12], [None, 16], 150, False],
+        [[None, 16], [None, 20], 60, True]
+    ],
+    'Index Finger Touch': [
+        [[0, 8], [1, 8], 60, True]
+    ]
+    # 'shadowWizardMoneyGang': [
+    #     [[0, 8], [1, 8], 40, True],
+    #     [[0, 20], [1, 20], 40, True],
+    #     [[0, 4], [1, 4], 30, True]
+    # ],
+}
 
-        self.duration = 0
-        self.gestureStart = None
 
-    def __resetGesture(self):
-        self.duration = 0
+def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list[int]:
+    """
 
-    def detect(self, hands: list[list[list[int]]]) -> bool | int:
-        active = self.detector(hands)
-        if not active:
-            self.__resetGesture()
-        else:
-            if not self.gestureStart:
-                self.gestureStart = time.time()
-            self.duration = time.time() - self.gestureStart
-        return active
+    Args:
+        hands: (list[list[int]]) The hand
+        params: (list[list[[int, int], [int, int], int, bool, ...?]]) An array of requirements which are in the form:
+
+            - [0]: point 1 index
+                - [0]: The hand index
+                - [1]: The point on the hand
+            - [1]: point 2 index
+                - [0]: The hand index
+                - [1]: The point on the hand
+            - [2]: Max/Min distance between the two points
+            - [3]: True if max, false if min
+
+    Returns:
+        bool - True if the gesture is being done, else false
+    """
+
+    handsDoingGesture = []
+    None_Banned_Hands = []
+
+    for param in params:  # If ONE parameter is wrong, it's not true for that hand
+        param_test_result = True
+
+        if param[0][0] == param[1][0] and param[0][0] is not None:  # If its for only one hand
+            if param[0][0] >= len(hands): return []
+            if len(hands[param[0][0]]) < 21: return []
+
+            selected_hand = hands[param[0][0]]
+            distBtwPoints = abs(math.dist(selected_hand[param[0][1]], selected_hand[param[1][1]]))
+
+            if param[3]:
+                result = distBtwPoints < param[2]
+            else:
+                result = distBtwPoints > param[2]
+
+            if not result: return[]
+
+        if not param[0][0] == param[1][0] and param[0][0] is not None and param[1][0] is not None:
+            if param[0][0] >= len(hands) or param[1][0] >= len(hands): return[]
+            if len(hands[param[0][0]]) < 21 or len(hands[param[1][0]]) < 21: return[]
+
+            distBtwPoints = abs(math.dist(hands[param[0][0]][param[0][1]], hands[param[1][0]][param[1][1]]))
+
+            if param[3]:
+                result = distBtwPoints < param[2]
+            else:
+                result = distBtwPoints > param[2]
+
+            if not result: return[]
+
+        if param[0][0] is None or param[1][0] is None:
+            num_results_true = 0
+            for hand_num, hand in enumerate(hands):
+                if len(hand) < 21: return[]
+
+                distBtwPoints = abs(math.dist(hand[param[0][1]], hand[param[1][1]]))
+
+                if param[3]:
+                    result = distBtwPoints < param[2]
+                else:
+                    result = distBtwPoints > param[2]
+
+                if result:
+                    if hand_num not in handsDoingGesture and hand_num not in None_Banned_Hands:
+                        handsDoingGesture.append(hand_num)
+                    num_results_true += 1
+                else:
+                    if hand_num in handsDoingGesture:
+                        handsDoingGesture.remove(hand_num)
+                    None_Banned_Hands.append(hand_num)
+
+            if num_results_true == 0: return[]
+
+    if len(handsDoingGesture) > 0:
+        return handsDoingGesture
+    else:
+        for param in params:
+            if not param[0][0] in handsDoingGesture:
+                handsDoingGesture.append(param[0][0])
+
+            if not param[1][0] in handsDoingGesture:
+                handsDoingGesture.append(param[1][0])
+
+        return handsDoingGesture
 
 
 class Hand:
-    def __init__(self, landmarks: list[list[int]], gestures: list[Gesture]):
+    def __init__(self, landmarks: list[list[int]]):
         self.landmarks = landmarks
         self.gestures = gestures
 
-    def CheckGestures(self):
-        for gesture in self.gestures:
-            gesture.detect([self.landmarks])
-
 
 class Hands:
-    def __init__(self, handList: list[Hand], twoHandGestures: list[Gesture]):
+    def __init__(self, handList: list[Hand]):
         self.handList = handList
-        self.twoHandGestures = twoHandGestures
-
-
-# hands = [Hand()]
 
 
 def get_hands():
     global hands
     while True:
         hands = HandTrackingSim.get_hands()
-        print(f"{hands = }")
 
 
 threading.Thread(target=get_hands).start()
@@ -169,6 +252,11 @@ if __name__ == "__main__":
                 pygame.draw.circle(screen, [0, 0, 0], center=(
                     lm[1] * (-WIDTH / 640) + WIDTH,
                     lm[2] * (HEIGHT / 480)), radius=10)
+
+        for gesture in gestures:
+            gesturingHands = detect_vertebraeC6(hands, gestures[gesture])
+            if len(gesturingHands) > 0:
+                print(gesture, "Being Did'd by hands:", gesturingHands)
 
         phys_sim.applyForces(phys_sim.calc_forces())
 
