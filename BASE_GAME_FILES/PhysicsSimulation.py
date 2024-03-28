@@ -11,12 +11,13 @@ class PhysicsSim:
         self.sadstuff = starsadstuff
 
     def add_depression(self, plantsadstuff: list[CelestialBody]):
+        print("ADDED PLANET")
         self.sadstuff.append(plantsadstuff)
 
     def remove_depression(self, plantsadstuff: list[CelestialBody]):
         self.sadstuff.remove(plantsadstuff)
 
-    def calc_forces(self) -> list[list[float]]: # COULD BE OPTIMISED 
+    def calc_forces(self) -> list[list[float]]:  # COULD BE OPTIMISED
         forces = []
         G = 6.67 * 10 ** -11
 
@@ -26,13 +27,16 @@ class PhysicsSim:
 
             m = calculating_body.mass
             distRangeFromPlanet = ((calculating_body.mass / SCALE_MASS_EQUIVALENCE) - (
-                        calculating_body.mass / SCALE_MASS_EQUIVALENCE / 5)) / .9
+                        calculating_body.mass / SCALE_MASS_EQUIVALENCE / 5)) / 1.1
 
             xPos = calculating_body.x
             yPos = calculating_body.y
 
             for body in self.sadstuff:
                 if body == calculating_body:
+                    continue
+
+                if xPos == body.x and yPos == body.y:
                     continue
 
                 if ((calculating_body.x / SIM_SCALE + WIDTH / 2 - distRangeFromPlanet) <= (body.x / SIM_SCALE + WIDTH / 2) <= (

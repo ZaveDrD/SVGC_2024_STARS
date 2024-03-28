@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import PhysicsSimulation
 import atexit
@@ -6,7 +8,6 @@ import Actor as A
 import threading
 import HandTrackingSim
 import math
-from typing import Callable
 import time
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
@@ -32,8 +33,10 @@ gestures = {
         [[None, 12], [None, 16], 150, False],
         [[None, 16], [None, 20], 60, True]
     ],
-    'Index Finger Touch': [
-        [[0, 8], [1, 8], 60, True]
+    'Summon Small Planet': [
+        [[None, 4], [None, 12], 50, True],
+        [[None, 3], [None, 11], 40, False],
+        [[None, 8], [None, 10], 60, False]
     ]
     # 'shadowWizardMoneyGang': [
     #     [[0, 8], [1, 8], 40, True],
@@ -132,9 +135,24 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
         return handsDoingGesture
 
 
+def calcScreenSpaceLandmarks(landmarks: list[list[int]]) -> list[list[int]]:
+    new_hand_lm = []
+    for lm in landmarks:
+        new_hand_lm.append([lm[0], lm[1] * (-WIDTH / 640) + WIDTH, lm[2] * (HEIGHT / 480), lm[3]])
+    return new_hand_lm
+
+
+def convertCamHandsToScreenSpaceHands(hands: list[list[list[int]]]) -> list[list[list[int]]]:
+    new_hand_list = []
+    for hand in hands:
+        new_hand_list.append(calcScreenSpaceLandmarks(hand))
+    return new_hand_list
+
 class Hand:
+
     def __init__(self, landmarks: list[list[int]]):
         self.landmarks = landmarks
+        self.screenSpace_lm = calcScreenSpaceLandmarks(landmarks)
         self.gestures = gestures
 
 
@@ -147,6 +165,7 @@ def get_hands():
     global hands
     while True:
         hands = HandTrackingSim.get_hands()
+        # hands = Hands(hands_raw)
 
 
 threading.Thread(target=get_hands).start()
@@ -170,12 +189,21 @@ class CelestialBody:
         self.ay = acceleration[1]
         self.vx = velocity[0]
         self.vy = velocity[1]
+        self.screenX = self.x / A.SIM_SCALE + A.offsetX
+        self.screenY = self.y / A.SIM_SCALE + A.offsetY
 
     def display(self):
         # print(f"\n{ self.name = }, { self.x = }, { self.y = }")
-        pygame.draw.circle(screen, self.color, center=(
-            self.x / A.SIM_SCALE + WIDTH / 2 + A.offsetX, self.y / A.SIM_SCALE + HEIGHT / 2 + A.offsetY),
-                           radius=self.mass / A.SCALE_MASS_EQUIVALENCE)
+        pygame.draw.circle(screen, self.color, center=(self.screenX, self.screenY), radius=self.mass / A.SCALE_MASS_EQUIVALENCE)
+
+    def updatePlanetPosition_ScreenSpace(self, x: float, y: float):
+        self.screenX = x
+        self.screenY = y
+
+        self.x = (self.screenX - A.offsetX) * A.SIM_SCALE
+        self.y = (self.screenY - A.offsetY) * A.SIM_SCALE
+
+        self.display()
 
     def calcNewPosition(self):
         deltaT = A.TIME_INC
@@ -194,13 +222,18 @@ class CelestialBody:
         self.y += self.vy * deltaT
 
         # print(f"\n{ self.name = }, \nPOSITIONS: { self.x = }, { self.y = }, \nVELOCITIES: { self.vx = }, { self.vy }, \nACCELERATION: { self.ax }, { self.ay }, \nFORCES: { self.fx = }, { self.fy }")
+
+        self.screenX = self.x / A.SIM_SCALE + A.offsetX
+        self.screenY = self.y / A.SIM_SCALE + A.offsetY
+
         self.display()
 
 
 if __name__ == "__main__":
     initial_celestial_bodies = [
-        CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000]),
-        CelestialBody('SUN 1', [0, 0, 0], "", 20 * 10 ** 30, [0, 0], [0, 0], [0, 0], [0, -2000000000000])
+        CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [25000000000000, 12000000000000])
+        # CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000])
+        # CelestialBody('SUN 1', [0, 0, 0], "", 2 * 10 ** 30, [0, 0], [0, 0], [15*10**-10, 0], [0, -2000000000000]),
     ]
 
     phys_sim = PhysicsSimulation.PhysicsSim(initial_celestial_bodies)
@@ -243,20 +276,65 @@ if __name__ == "__main__":
 
         screen.fill("#5a82c2")
 
-        for hand in hands:
+        for hand in convertCamHandsToScreenSpaceHands(hands):
             for lm in hand:
-                # for lm_other in range(0, len(currentFrameHandLandmarks[handNum])):
-                #     if lm == 0 and lm_other == (1 or 5 or 9 or 13 or 17):
-                #         pygame.draw.line(screen, [255, 255, 255], [currentFrameHandLandmarks[handNum][lm][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm][2] * 3 - HEIGHT / 4], [currentFrameHandLandmarks[handNum][lm_other][1] * -3 + 1.2 * WIDTH, currentFrameHandLandmarks[handNum][lm_other][2] * 3 - HEIGHT / 4], 5)
+                # print(f"{lm = }")
+                pygame.draw.circle(screen, [0, 0, 0], center=(lm[1], lm[2]), radius=10)
 
-                pygame.draw.circle(screen, [0, 0, 0], center=(
-                    lm[1] * (-WIDTH / 640) + WIDTH,
-                    lm[2] * (HEIGHT / 480)), radius=10)
+        # for gesture in gestures:
+        #     gesturingHands = detect_vertebraeC6(hands, gestures[gesture])
+        #     if len(gesturingHands) > 0:
+        #         print(gesture, "Being Did'd by hands:", gesturingHands)
 
-        for gesture in gestures:
-            gesturingHands = detect_vertebraeC6(hands, gestures[gesture])
-            if len(gesturingHands) > 0:
-                print(gesture, "Being Did'd by hands:", gesturingHands)
+        for planetaryBody in initial_celestial_bodies:  # PINCH DETECTION TO GRAB PLANETS
+            pinchingHands = detect_vertebraeC6(convertCamHandsToScreenSpaceHands(hands), gestures['pinch'])
+            if len(pinchingHands) == 0: break
+            for hand in pinchingHands:
+                if hand is None: break
+                if hand >= len(hands): break
+
+                pinchingHand = calcScreenSpaceLandmarks(hands[hand])
+                landmarkCoord = [pinchingHand[gestures['pinch'][0][0][1]][1],
+                                 pinchingHand[gestures['pinch'][0][0][1]][2]]
+
+                plantPos = [planetaryBody.screenX, planetaryBody.screenY]
+
+                # print(abs(math.dist(landmarkCoord, plantPos)))
+                # print("Planet Pos", plantPos, "\n", "Landmark Pos", landmarkCoord)
+
+                if abs(math.dist(landmarkCoord, plantPos)) <= planetaryBody.mass / A.SCALE_MASS_EQUIVALENCE:
+                    planetaryBody.updatePlanetPosition_ScreenSpace(landmarkCoord[0], landmarkCoord[1])
+
+        for planetaryBody in initial_celestial_bodies:  # SUMMON PLANETS
+            planetSummoningHands = detect_vertebraeC6(convertCamHandsToScreenSpaceHands(hands), gestures['Summon Small Planet'])
+            if len(planetSummoningHands) == 0: break
+            for hand in planetSummoningHands:
+                if hand is None: break
+                if hand >= len(hands): break
+
+                summoningHand = calcScreenSpaceLandmarks(hands[hand])
+                print(summoningHand[9][0], summoningHand[12][0])
+                landmarkCoord = [(summoningHand[9][1] + summoningHand[12][1]) / 2, (summoningHand[9][2] + summoningHand[12][2]) / 2]
+                # print(f"{landmarkCoord = }")
+
+                planetPosPadding = 50
+
+                canPlaceBody = True
+
+                for body in phys_sim.sadstuff:
+                    # print(f"{landmarkCoord = }\n Planet Pos = {[body.screenX, body.screenY]}\n")
+
+                    if body.screenX - planetPosPadding <= landmarkCoord[0] <= body.screenX + planetPosPadding and \
+                            body.screenY - planetPosPadding <= landmarkCoord[1] <= body.screenY + planetPosPadding:
+                        canPlaceBody = False
+                        continue
+
+                if canPlaceBody:
+                    body = CelestialBody('Small Planet', [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)], "", 2 * 10 ** 30 * 50, [0, 0], [0, 0], [0, 0],
+                                         [landmarkCoord[0] * A.SIM_SCALE, landmarkCoord[1] * A.SIM_SCALE])
+                    phys_sim.add_depression(body)
+                else:
+                    print("TOO CLOSE TO SPAWN PLANET")
 
         phys_sim.applyForces(phys_sim.calc_forces())
 

@@ -12,7 +12,7 @@ previousHand: list = None
 
 def get_hands() -> list[list[list[int]]]:
     global previousHand
-    success, img = cap.read()  # PROBLEMATIC LINE (DECREASES PERFORMANCE BY A MILLION)
+    success, img = cap.read()  # PROBLEMATIC LINE (DECREASES PERFORMANCE BY A MILLION) -> solved by threading the func.
     img = handDetector.FindHands(img)
 
     hands = handDetector.ConstructLandmarkList(img)
