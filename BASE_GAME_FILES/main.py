@@ -19,11 +19,17 @@ screen = pygame.display.set_mode([WIDTH, HEIGHT])
 A.WIDTH, A.HEIGHT = WIDTH, HEIGHT
 hands: list = []
 
+true = True
+false = False
+null = None
+
+class Gesture:
+    ...
 gestures = {
     #   True      ->      Less Than        ->     dist < X
     #   False     ->      Greater Than     ->     dist > X
 
-    'pinch': [
+    'Pinch': [
         [[None, 4], [None, 8], 50, True],
         [[None, 3], [None, 7], 40, False]
     ],
@@ -37,7 +43,7 @@ gestures = {
         [[None, 4], [None, 12], 50, True],
         [[None, 3], [None, 11], 40, False],
         [[None, 8], [None, 10], 60, False]
-    ]
+    ],
     # 'shadowWizardMoneyGang': [
     #     [[0, 8], [1, 8], 40, True],
     #     [[0, 20], [1, 20], 40, True],
@@ -45,10 +51,19 @@ gestures = {
     # ],
 }
 
+motion_gestures = {
+    'OuiOuiMonAmiJeMapeleLafayette': [
+        [[]],
+        [gestures['pinch'], None, None],
+        [gestures['pinch'], [0, 100, [None, 0]], [0.2, 1.4]]
+        # [GESTURE, [OFFSET_X, OFFSET_Y, [HAND, LANDMARK]] (NONE -> START POSITION), [MIN_TIME, MAX_TIME] (NONE -> START)]
+    ]
+}
+
 
 def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list[int]:
     """
-
+    Detect Gestures
     Args:
         hands: (list[list[int]]) The hand
         params: (list[list[[int, int], [int, int], int, bool, ...?]]) An array of requirements which are in the form:
@@ -133,6 +148,34 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
                 handsDoingGesture.append(param[1][0])
 
         return handsDoingGesture
+
+
+def detect_vertebraeCwalrUs(hands: list[list[list[int]]], gesture) -> list[int]:
+    handsDoingStartGesture = detect_vertebraeC6(hands, gesture[1][0])  # := walrus
+    for handNum, handDoingStartGesture in enumerate(handsDoingStartGesture):
+        if handDoingStartGesture:
+            gesture[0].append([handNum, 0])
+
+    currentTime = gesture[0][0]
+    if not currentTime and any():
+        gesture[0] = [time.time(), [num for num, hand in h if hand]]
+    for param in gestures[1:]:
+        if time.time -  param[2][1] > currentTime:
+            gesture[0][0] = 0
+            return False
+        if time.time() - param[2][1] > currentTime > param[2][0]:
+            # Check offset
+            doing = detect_vertebraeC6(hands, param[0])
+            new_h = []
+            if any(doing):
+                for num, hand in enumerate(doing):
+                    if hand in gesture[0][1] and hand[param[]]:
+                        new_h.append(hand)
+            gesture[0][1] = new_h
+
+
+
+
 
 
 def calcScreenSpaceLandmarks(landmarks: list[list[int]]) -> list[list[int]]:
@@ -231,9 +274,9 @@ class CelestialBody:
 
 if __name__ == "__main__":
     initial_celestial_bodies = [
-        CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [25000000000000, 12000000000000])
-        # CelestialBody('SUN 2', [255, 255, 255], "", 2 * 10 ** 30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000])
-        # CelestialBody('SUN 1', [0, 0, 0], "", 2 * 10 ** 30, [0, 0], [0, 0], [15*10**-10, 0], [0, -2000000000000]),
+        CelestialBody('SUN 2', [255, 255, 255], "", 2e30 * 100, [0, 0], [0, 0], [0, 0], [25000000000000, 12000000000000])
+        # CelestialBody('SUN 2', [255, 255, 255], "", 2e30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000])
+        # CelestialBody('SUN 1', [0, 0, 0], "", 2e30, [0, 0], [0, 0], [15e-10, 0], [0, -2000000000000]),
     ]
 
     phys_sim = PhysicsSimulation.PhysicsSim(initial_celestial_bodies)
@@ -287,15 +330,15 @@ if __name__ == "__main__":
         #         print(gesture, "Being Did'd by hands:", gesturingHands)
 
         for planetaryBody in initial_celestial_bodies:  # PINCH DETECTION TO GRAB PLANETS
-            pinchingHands = detect_vertebraeC6(convertCamHandsToScreenSpaceHands(hands), gestures['pinch'])
+            pinchingHands = detect_vertebraeC6(convertCamHandsToScreenSpaceHands(hands), gestures['Pinch'])
             if len(pinchingHands) == 0: break
             for hand in pinchingHands:
                 if hand is None: break
                 if hand >= len(hands): break
 
                 pinchingHand = calcScreenSpaceLandmarks(hands[hand])
-                landmarkCoord = [pinchingHand[gestures['pinch'][0][0][1]][1],
-                                 pinchingHand[gestures['pinch'][0][0][1]][2]]
+                landmarkCoord = [pinchingHand[gestures['Pinch'][0][0][1]][1],
+                                 pinchingHand[gestures['Pinch'][0][0][1]][2]]
 
                 plantPos = [planetaryBody.screenX, planetaryBody.screenY]
 
