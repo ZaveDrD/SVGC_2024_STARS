@@ -1,5 +1,4 @@
 import random
-
 import pygame
 import PhysicsSimulation
 import atexit
@@ -9,6 +8,8 @@ import threading
 import HandTrackingSim
 import math
 import time
+
+
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
 
@@ -25,6 +26,56 @@ null = None
 
 class Gesture:
     ...
+
+class MotionGesture(Gesture):
+    def __init__(self, gesture: Gesture, index: list[int], *others: list[dict['gesture': Gesture, 'offset': list[int], 'index': list[int]]]):
+        start = {
+            'gesture': gesture,
+            'x': 0,
+            'y': 0,
+            'index': {
+                'hand': index[0],
+                'landmark': index[1]
+            },
+        }
+        self.params = [start] + [
+            {
+                'gesture': i['gesture'],
+                'x': i['offset'][0],
+                'y': i['offset'][1],
+                'index': i['index']
+            }
+            for i in others
+        ]
+        self.hands: list[list[int | list[int]]] = []
+        # Hand, Level, level start time, [x, y]
+    def detect(self, hands: list[list[list[int]]]) -> bool:
+        for num, hand in enumerate(hands):
+            if hand not in self.hands or self.hands[hand][1] == -1:
+                index = self.params[0]['index']
+                if detect_vertebraeC6(hands, self.params[0]['gesture']):
+                    self.hands.append([num, 0, hand[index[1]]])
+                else:
+                    hands.append([num, -1, hand[index[1]]])
+            else:
+                params = None
+                for h in self.hands:
+                    if h[0] == num:
+                        params = self.params[h[1]]
+                        break
+                if abs(time.time() - self.hands[num][3]) >= 1.5:
+                    self.hands[num][1] = -1
+                    self.hands[num][2] = 0
+                    self.hands[3] = [0, 0]
+
+                if detect_vertebraeC6(hands, params['gesture']) and\
+                    abs(params['x']-hand[index[3]][0]) < 30 and abs(params['y']-hand[index[3][1]]) < 30:
+                    self.hands[num][1] += 1
+                    self.hands[num][2] = hand[index[3][0]][index[3][1]]
+                    self.hands[num][3] = time.time()
+
+
+
 gestures = {
     #   True      ->      Less Than        ->     dist < X
     #   False     ->      Greater Than     ->     dist > X
@@ -148,32 +199,6 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
                 handsDoingGesture.append(param[1][0])
 
         return handsDoingGesture
-
-
-def detect_vertebraeCwalrUs(hands: list[list[list[int]]], gesture) -> list[int]:
-    handsDoingStartGesture = detect_vertebraeC6(hands, gesture[1][0])  # := walrus
-    for handNum, handDoingStartGesture in enumerate(handsDoingStartGesture):
-        if handDoingStartGesture:
-            gesture[0].append([handNum, 0])
-
-    currentTime = gesture[0][0]
-    if not currentTime and any():
-        gesture[0] = [time.time(), [num for num, hand in h if hand]]
-    for param in gestures[1:]:
-        if time.time -  param[2][1] > currentTime:
-            gesture[0][0] = 0
-            return False
-        if time.time() - param[2][1] > currentTime > param[2][0]:
-            # Check offset
-            doing = detect_vertebraeC6(hands, param[0])
-            new_h = []
-            if any(doing):
-                for num, hand in enumerate(doing):
-                    if hand in gesture[0][1] and hand[param[]]:
-                        new_h.append(hand)
-            gesture[0][1] = new_h
-
-
 
 
 
