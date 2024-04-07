@@ -25,10 +25,13 @@ false = False
 null = None
 
 class Gesture:
+    pass
+
+class StaticGesture(Gesture):
     ...
 
 class MotionGesture(Gesture):
-    def __init__(self, gesture: Gesture, index: list[int], *others: list[dict['gesture': Gesture, 'offset': list[int], 'index': list[int]]]):
+    def __init__(self, gesture: StaticGesture, index: list[int], *others: list[dict['gesture': StaticGesture, 'offset': list[int], 'index': list[int]]]):
         start = {
             'gesture': gesture,
             'x': 0,
