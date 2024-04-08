@@ -23,8 +23,65 @@ true = True
 false = False
 null = None
 
+
 class Gesture:
+    pass
+
+
+class StaticGesture(Gesture):
     ...
+
+
+class MotionGesture(Gesture):
+    def __init__(self, gesture: StaticGesture, index: list[int],
+                 *others: list[dict['gesture': StaticGesture, 'offset': list[int], 'index': list[int]]]):
+        start = {
+            'gesture': gesture,
+            'x': 0,
+            'y': 0,
+            'index': {
+                'hand': index[0],
+                'landmark': index[1]
+            },
+        }
+        self.params = [start] + [
+            {
+                'gesture': i['gesture'],
+                'x': i['offset'][0],
+                'y': i['offset'][1],
+                'index': i['index']
+            }
+            for i in others
+        ]
+        self.hands: list[list[int | list[int]]] = []
+        # Hand, Level, level start time, [x, y]
+
+    def detect(self, hands: list[list[list[int]]]) -> bool:
+        for num, hand in enumerate(hands):
+            if hand not in self.hands or self.hands[hand][1] == -1:
+                index = self.params[0]['index']
+                if detect_vertebraeC6(hands, self.params[0]['gesture']):
+                    self.hands.append([num, 0, hand[index[1]]])
+                else:
+                    hands.append([num, -1, hand[index[1]]])
+            else:
+                params = None
+                for h in self.hands:
+                    if h[0] == num:
+                        params = self.params[h[1]]
+                        break
+                if abs(time.time() - self.hands[num][3]) >= 1.5:
+                    self.hands[num][1] = -1
+                    self.hands[num][2] = 0
+                    self.hands[3] = [0, 0]
+
+                if detect_vertebraeC6(hands, params['gesture']) and \
+                        abs(params['x'] - hand[index[3]][0]) < 30 and abs(params['y'] - hand[index[3][1]]) < 30:
+                    self.hands[num][1] += 1
+                    self.hands[num][2] = hand[index[3][0]][index[3][1]]
+                    self.hands[num][3] = time.time()
+
+
 gestures = {
     #   True      ->      Less Than        ->     dist < X
     #   False     ->      Greater Than     ->     dist > X
@@ -49,15 +106,6 @@ gestures = {
     #     [[0, 20], [1, 20], 40, True],
     #     [[0, 4], [1, 4], 30, True]
     # ],
-}
-
-motion_gestures = {
-    'OuiOuiMonAmiJeMapeleLafayette': [
-        [[]],
-        [gestures['pinch'], None, None],
-        [gestures['pinch'], [0, 100, [None, 0]], [0.2, 1.4]]
-        # [GESTURE, [OFFSET_X, OFFSET_Y, [HAND, LANDMARK]] (NONE -> START POSITION), [MIN_TIME, MAX_TIME] (NONE -> START)]
-    ]
 }
 
 
@@ -99,11 +147,11 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
             else:
                 result = distBtwPoints > param[2]
 
-            if not result: return[]
+            if not result: return []
 
         if not param[0][0] == param[1][0] and param[0][0] is not None and param[1][0] is not None:
-            if param[0][0] >= len(hands) or param[1][0] >= len(hands): return[]
-            if len(hands[param[0][0]]) < 21 or len(hands[param[1][0]]) < 21: return[]
+            if param[0][0] >= len(hands) or param[1][0] >= len(hands): return []
+            if len(hands[param[0][0]]) < 21 or len(hands[param[1][0]]) < 21: return []
 
             distBtwPoints = abs(math.dist(hands[param[0][0]][param[0][1]], hands[param[1][0]][param[1][1]]))
 
@@ -112,12 +160,12 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
             else:
                 result = distBtwPoints > param[2]
 
-            if not result: return[]
+            if not result: return []
 
         if param[0][0] is None or param[1][0] is None:
             num_results_true = 0
             for hand_num, hand in enumerate(hands):
-                if len(hand) < 21: return[]
+                if len(hand) < 21: return []
 
                 distBtwPoints = abs(math.dist(hand[param[0][1]], hand[param[1][1]]))
 
@@ -135,7 +183,7 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
                         handsDoingGesture.remove(hand_num)
                     None_Banned_Hands.append(hand_num)
 
-            if num_results_true == 0: return[]
+            if num_results_true == 0: return []
 
     if len(handsDoingGesture) > 0:
         return handsDoingGesture
@@ -150,34 +198,6 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
         return handsDoingGesture
 
 
-def detect_vertebraeCwalrUs(hands: list[list[list[int]]], gesture) -> list[int]:
-    handsDoingStartGesture = detect_vertebraeC6(hands, gesture[1][0])  # := walrus
-    for handNum, handDoingStartGesture in enumerate(handsDoingStartGesture):
-        if handDoingStartGesture:
-            gesture[0].append([handNum, 0])
-
-    currentTime = gesture[0][0]
-    if not currentTime and any():
-        gesture[0] = [time.time(), [num for num, hand in h if hand]]
-    for param in gestures[1:]:
-        if time.time -  param[2][1] > currentTime:
-            gesture[0][0] = 0
-            return False
-        if time.time() - param[2][1] > currentTime > param[2][0]:
-            # Check offset
-            doing = detect_vertebraeC6(hands, param[0])
-            new_h = []
-            if any(doing):
-                for num, hand in enumerate(doing):
-                    if hand in gesture[0][1] and hand[param[]]:
-                        new_h.append(hand)
-            gesture[0][1] = new_h
-
-
-
-
-
-
 def calcScreenSpaceLandmarks(landmarks: list[list[int]]) -> list[list[int]]:
     new_hand_lm = []
     for lm in landmarks:
@@ -190,6 +210,7 @@ def convertCamHandsToScreenSpaceHands(hands: list[list[list[int]]]) -> list[list
     for hand in hands:
         new_hand_list.append(calcScreenSpaceLandmarks(hand))
     return new_hand_list
+
 
 class Hand:
 
@@ -237,7 +258,8 @@ class CelestialBody:
 
     def display(self):
         # print(f"\n{ self.name = }, { self.x = }, { self.y = }")
-        pygame.draw.circle(screen, self.color, center=(self.screenX, self.screenY), radius=self.mass / A.SCALE_MASS_EQUIVALENCE)
+        pygame.draw.circle(screen, self.color, center=(self.screenX, self.screenY),
+                           radius=self.mass / A.SCALE_MASS_EQUIVALENCE)
 
     def updatePlanetPosition_ScreenSpace(self, x: float, y: float):
         self.screenX = x
@@ -274,7 +296,8 @@ class CelestialBody:
 
 if __name__ == "__main__":
     initial_celestial_bodies = [
-        CelestialBody('SUN 2', [255, 255, 255], "", 2e30 * 100, [0, 0], [0, 0], [0, 0], [25000000000000, 12000000000000])
+        CelestialBody('SUN 2', [255, 255, 255], "", 2e30 * 100, [0, 0], [0, 0], [0, 0],
+                      [25000000000000, 12000000000000])
         # CelestialBody('SUN 2', [255, 255, 255], "", 2e30 * 100, [0, 0], [0, 0], [0, 0], [0, 4000000000000])
         # CelestialBody('SUN 1', [0, 0, 0], "", 2e30, [0, 0], [0, 0], [15e-10, 0], [0, -2000000000000]),
     ]
@@ -349,7 +372,8 @@ if __name__ == "__main__":
                     planetaryBody.updatePlanetPosition_ScreenSpace(landmarkCoord[0], landmarkCoord[1])
 
         for planetaryBody in initial_celestial_bodies:  # SUMMON PLANETS
-            planetSummoningHands = detect_vertebraeC6(convertCamHandsToScreenSpaceHands(hands), gestures['Summon Small Planet'])
+            planetSummoningHands = detect_vertebraeC6(convertCamHandsToScreenSpaceHands(hands),
+                                                      gestures['Summon Small Planet'])
             if len(planetSummoningHands) == 0: break
             for hand in planetSummoningHands:
                 if hand is None: break
@@ -357,7 +381,8 @@ if __name__ == "__main__":
 
                 summoningHand = calcScreenSpaceLandmarks(hands[hand])
                 print(summoningHand[9][0], summoningHand[12][0])
-                landmarkCoord = [(summoningHand[9][1] + summoningHand[12][1]) / 2, (summoningHand[9][2] + summoningHand[12][2]) / 2]
+                landmarkCoord = [(summoningHand[9][1] + summoningHand[12][1]) / 2,
+                                 (summoningHand[9][2] + summoningHand[12][2]) / 2]
                 # print(f"{landmarkCoord = }")
 
                 planetPosPadding = 50
@@ -373,7 +398,9 @@ if __name__ == "__main__":
                         continue
 
                 if canPlaceBody:
-                    body = CelestialBody('Small Planet', [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)], "", 2 * 10 ** 30 * 50, [0, 0], [0, 0], [0, 0],
+                    body = CelestialBody('Small Planet',
+                                         [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)], "",
+                                         2 * 10 ** 30 * 50, [0, 0], [0, 0], [0, 0],
                                          [landmarkCoord[0] * A.SIM_SCALE, landmarkCoord[1] * A.SIM_SCALE])
                     phys_sim.add_depression(body)
                 else:
