@@ -234,6 +234,7 @@ def get_hands():
 
 threading.Thread(target=get_hands).start()
 
+#  sadness
 
 class CelestialBody:
     def __init__(self, name, color, bodyType, mass, force, acceleration, velocity, pos, *args):
