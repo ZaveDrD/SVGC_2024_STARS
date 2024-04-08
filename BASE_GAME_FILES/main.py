@@ -24,11 +24,14 @@ true = True
 false = False
 null = None
 
+
 class Gesture:
     pass
 
+
 class StaticGesture(Gesture):
     ...
+
 
 class MotionGesture(Gesture):
     def __init__(self, gesture: StaticGesture, index: list[int], *others: list[dict['gesture': StaticGesture, 'offset': list[int], 'index': list[int]]]):
@@ -52,6 +55,7 @@ class MotionGesture(Gesture):
         ]
         self.hands: list[list[int | list[int]]] = []
         # Hand, Level, level start time, [x, y]
+
     def detect(self, hands: list[list[list[int]]]) -> bool:
         for num, hand in enumerate(hands):
             if hand not in self.hands or self.hands[hand][1] == -1:
@@ -76,7 +80,6 @@ class MotionGesture(Gesture):
                     self.hands[num][1] += 1
                     self.hands[num][2] = hand[index[3][0]][index[3][1]]
                     self.hands[num][3] = time.time()
-
 
 
 gestures = {
