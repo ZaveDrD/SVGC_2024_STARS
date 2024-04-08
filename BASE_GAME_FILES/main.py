@@ -42,7 +42,7 @@ class StaticGesture(Gesture):
         handsDoingGesture = []
         None_Banned_Hands = []
 
-        for param in self.params:  # If ONE parameter is wrong, it's not true for that hand
+        for param in self.params:  # If ONE parameter is false, it's not true for that hand
             if param[0][0] == param[1][0] and param[0][0] is not None:  # If its for only one hand
                 if param[0][0] >= len(hands): return []
                 if len(hands[param[0][0]]) < 21: return []
