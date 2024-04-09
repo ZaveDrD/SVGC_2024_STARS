@@ -3,36 +3,71 @@ from math import sqrt
 import cv2
 import math
 import time
+import IHatePythonSyntax
 
 
-gestures = {
-    #   True      ->      Less Than        ->     dist < X
-    #   False     ->      Greater Than     ->     dist > X
+class Gesture:
+    pass
 
-    'pinch': [
-        [[None, 4], [None, 8], 50, True],
-        [[None, 3], [None, 7], 40, False]
-    ],
-    'Finger Gun': [
-        [[None, 8], [None, 12], 60, True],
-        [[None, 7], [None, 11], 60, True],
-        [[None, 12], [None, 16], 150, False],
-        [[None, 16], [None, 20], 60, True]
-    ],
-    'Index Finger Touch': [
-        [[0, 8], [1, 8], 60, True]
-    ]
-    # 'shadowWizardMoneyGang': [
-    #     [[0, 8], [1, 8], 40, True],
-    #     [[0, 20], [1, 20], 40, True],
-    #     [[0, 4], [1, 4], 30, True]
-    # ],
-}
+
+class StaticGesture(Gesture):
+    ...
+
+
+class MotionGesture(Gesture):
+    # Previously known as walrus :=
+    def __init__(self, gesture: StaticGesture, index: list[int],
+                 *others: list[dict['gesture': StaticGesture, 'offset': list[int], 'index': list[int]]]):
+        start = {
+            'gesture': gesture,
+            'x': 0,
+            'y': 0,
+            'index': {
+                'hand': index[0],
+                'landmark': index[1]
+            },
+        }
+        self.params = [start] + [
+            {
+                'gesture': i['gesture'],
+                'x': i['offset'][0],
+                'y': i['offset'][1],
+                'index': i['index']
+            }
+            for i in others
+        ]
+        self.hands: list[list[int | list[int]]] = []
+        # Hand, Level, level start time, [x, y]
+
+    def detect(self, hands: list[list[list[int]]]) -> bool:
+        for num, hand in enumerate(hands):
+            if hand not in self.hands or self.hands[hand][1] == -1:
+                index = self.params[0]['index']
+                if detect_vertebraeC6(hands, self.params[0]['gesture']):
+                    self.hands.append([num, 0, hand[index[1]]])
+                else:
+                    hands.append([num, -1, hand[index[1]]])
+            else:
+                params = None
+                for h in self.hands:
+                    if h[0] == num:
+                        params = self.params[h[1]]
+                        break
+                if abs(time.time() - self.hands[num][3]) >= 1.5:
+                    self.hands[num][1] = -1
+                    self.hands[num][2] = 0
+                    self.hands[3] = [0, 0]
+
+                if detect_vertebraeC6(hands, params['gesture']) and \
+                        abs(params['x'] - hand[index[3]][0]) < 30 and abs(params['y'] - hand[index[3][1]]) < 30:
+                    self.hands[num][1] += 1
+                    self.hands[num][2] = hand[index[3][0]][index[3][1]]
+                    self.hands[num][3] = time.time()
 
 
 def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list[int]:
     """
-
+    Detect Gestures
     Args:
         hands: (list[list[int]]) The hand
         params: (list[list[[int, int], [int, int], int, bool, ...?]]) An array of requirements which are in the form:
@@ -51,12 +86,9 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
     """
 
     handsDoingGesture = []
-
     None_Banned_Hands = []
 
     for param in params:  # If ONE parameter is wrong, it's not true for that hand
-        param_test_result = True
-
         if param[0][0] == param[1][0] and param[0][0] is not None:  # If its for only one hand
             if param[0][0] >= len(hands): return []
             if len(hands[param[0][0]]) < 21: return []
@@ -69,11 +101,11 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
             else:
                 result = distBtwPoints > param[2]
 
-            if not result: return[]
+            if not result: return []
 
         if not param[0][0] == param[1][0] and param[0][0] is not None and param[1][0] is not None:
-            if param[0][0] >= len(hands) or param[1][0] >= len(hands): return[]
-            if len(hands[param[0][0]]) < 21 or len(hands[param[1][0]]) < 21: return[]
+            if param[0][0] >= len(hands) or param[1][0] >= len(hands): return []
+            if len(hands[param[0][0]]) < 21 or len(hands[param[1][0]]) < 21: return []
 
             distBtwPoints = abs(math.dist(hands[param[0][0]][param[0][1]], hands[param[1][0]][param[1][1]]))
 
@@ -82,12 +114,12 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
             else:
                 result = distBtwPoints > param[2]
 
-            if not result: return[]
+            if not result: return []
 
         if param[0][0] is None or param[1][0] is None:
             num_results_true = 0
             for hand_num, hand in enumerate(hands):
-                if len(hand) < 21: return[]
+                if len(hand) < 21: return []
 
                 distBtwPoints = abs(math.dist(hand[param[0][1]], hand[param[1][1]]))
 
@@ -105,7 +137,7 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
                         handsDoingGesture.remove(hand_num)
                     None_Banned_Hands.append(hand_num)
 
-            if num_results_true == 0: return[]
+            if num_results_true == 0: return []
 
     if len(handsDoingGesture) > 0:
         return handsDoingGesture
@@ -118,30 +150,3 @@ def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list
                 handsDoingGesture.append(param[1][0])
 
         return handsDoingGesture
-
-
-# def detect_continuous(hands, previous) -> dict[str, dict[str, bool]]
-
-def main():
-    cap = cv2.VideoCapture(0)
-    handDetector = htm.HandDetector()
-
-    while True:
-        success, img = cap.read()
-
-        img = handDetector.FindHands(img)
-
-        hands = handDetector.ConstructLandmarkList(img)
-
-        for gesture in gestures:
-            gesturingHands = detect_vertebraeC6(hands, gestures[gesture])
-            if len(gesturingHands) > 0:
-                print(gesture, "Being Did'd by hands:", gesturingHands)
-
-        cv2.imshow("Image", img)
-        cv2.waitKey(1)
-
-
-if __name__ == "__main__":
-    main()
-

@@ -2,6 +2,7 @@ import cv2
 import HandTracking.HandTrackingModule as htm
 import subprocess
 import math
+import IHatePythonSyntax
 
 
 SMOOTHING_CONSTANT: int = 7
