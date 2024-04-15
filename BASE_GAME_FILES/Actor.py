@@ -1,30 +1,49 @@
-# import HandTrackingSim as hsm
 import pygame
 import atexit
 import sys
 import IHatePythonSyntax
 
+########################################################################################################################
+#############################################  SIMULATION STUFF  #######################################################
+########################################################################################################################
 
-DEFAULT_SIM_SCALE = 10 ** 10 * 3
-DEFAULT_SCALE_MASS_EQUIVALENCE = 10 ** 28 * 150
+#  CONSTANTS
+SIM_SCALE = 10 ** 10 * 3
+SCALE_MASS_EQUIVALENCE = SIM_SCALE * 2 ** 18  # SCALE_MASS_EQUIV is a multiple of SIM_SCALE so that SIM_SCALE actually matters
 
+########################################################################################################################
+##############################################  PLAYER MOVEMENT  #######################################################
+########################################################################################################################
+
+#  CONSTANTS
+PLAYER_MOVE_SPEED = 0.5
+ZOOM_MULT_INC = 0.001
+PLAYER_MIN_ZOOM = 10 ** -10
+
+#  VARIABLES
+player_view_pos_x, player_view_pos_y = 0, 0
+player_zoom = 1
+
+########################################################################################################################
+#####################################################  TIME  ###########################################################
+########################################################################################################################
+
+#  CONSTANTS
+TICK_SPEED_INC = 1
+
+#  VARIABLES
+tick_speed = 60
+current_game_time = 0
+current_simulated_time = 0
+current_tick = 0
+
+########################################################################################################################
+################################################  GAME SPECS  ##########################################################
+########################################################################################################################
+
+#  CONSTANTS
 WIDTH, HEIGHT = 0, 0
-
-SIM_SCALE = DEFAULT_SIM_SCALE
-SCALE_MASS_EQUIVALENCE = DEFAULT_SCALE_MASS_EQUIVALENCE
-
-offsetX, offsetY = 0, 0
-moveControlSpeed = 0.5
-
-zoom = 1
-zoomInc = 1 * 10 ** -3
-
-current_time = 0
-DEFAULT_TIME_INC = 1 * 10 ** 17
-
-TIME_INC = DEFAULT_TIME_INC
-time_mult = 1
-TIME_MULT_INC = 10 ** -2
+TRIPPY_MODE = False
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
 
@@ -67,4 +86,27 @@ pygame.display.init()
 WIDTH, HEIGHT = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 
-# handPositions = hsm.handPositions
+
+def tick(ticks):  # NEED TO CONVERT WHOLE SYSTEM TO TICKS
+    print("CHECK TICK VAL")
+
+
+def updateMovementParams(keys, A):
+    if keys[pygame.K_UP]:
+        A.player_view_pos_y += PLAYER_MOVE_SPEED
+    if keys[pygame.K_DOWN]:
+        A.player_view_pos_y -= PLAYER_MOVE_SPEED
+    if keys[pygame.K_LEFT]:
+        A.player_view_pos_x += PLAYER_MOVE_SPEED
+    if keys[pygame.K_RIGHT]:
+        A.player_view_pos_x -= PLAYER_MOVE_SPEED
+
+    if keys[pygame.K_EQUALS]:
+        A.player_zoom += ZOOM_MULT_INC
+    if keys[pygame.K_MINUS]:
+        A.player_zoom = PLAYER_MIN_ZOOM if A.player_zoom - ZOOM_MULT_INC < 0 else A.player_zoom - ZOOM_MULT_INC
+
+    if keys[pygame.K_RIGHTBRACKET]:
+        A.tick_speed += TICK_SPEED_INC
+    if keys[pygame.K_LEFTBRACKET]:
+        A.tick_speed -= TICK_SPEED_INC

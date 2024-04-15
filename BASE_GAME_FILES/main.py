@@ -60,42 +60,16 @@ if __name__ == "__main__":
     phys_sim = PhysicsSim(initial_celestial_bodies)
 
     while True:
-        A.TIME_INC = A.DEFAULT_TIME_INC * A.time_mult
-        A.current_time += A.TIME_INC
-
-        A.SIM_SCALE = A.DEFAULT_SIM_SCALE * A.zoom
-        A.SCALE_MASS_EQUIVALENCE = A.DEFAULT_SCALE_MASS_EQUIVALENCE * A.zoom
-
+        # Closes the application on quit
         for event in A.pygame.event.get():
             if event.type == A.pygame.QUIT:
                 A.pygame.quit()
                 sys.exit()
 
         keys = A.pygame.key.get_pressed()
+        A.updateMovementParams(keys, A)
 
-        if keys[A.pygame.K_UP]:
-            A.offsetY += A.moveControlSpeed
-        if keys[A.pygame.K_DOWN]:
-            A.offsetY -= A.moveControlSpeed
-        if keys[A.pygame.K_LEFT]:
-            A.offsetX += A.moveControlSpeed
-        if keys[A.pygame.K_RIGHT]:
-            A.offsetX -= A.moveControlSpeed
-
-        if keys[A.pygame.K_EQUALS]:
-            if A.zoom - A.zoomInc > 0:
-                A.zoom -= A.zoomInc
-            else:
-                A.zoom = 10 ** -10
-        if keys[A.pygame.K_MINUS]:
-            A.zoom += A.zoomInc
-
-        if keys[A.pygame.K_LEFTBRACKET]:
-            A.time_mult -= A.TIME_MULT_INC
-        if keys[A.pygame.K_RIGHTBRACKET]:
-            A.time_mult += A.TIME_MULT_INC
-
-        A.screen.fill("#5a82c2")
+        if not A.trippy_mode: A.screen.fill("#5a82c2")
 
         for hand in convertCamHandsToScreenSpaceHands(hands):
             for lm in hand:
