@@ -1,14 +1,11 @@
 import random
-import pygame
 from PhysicsSimulation import *
 import sys
 import Actor as A
 import threading
 import HandTrackingSim
-import math
 from GestureTrackingSim import *
 import IHatePythonSyntax
-import time
 
 hands: list = []
 
@@ -44,7 +41,6 @@ def get_hands():
     global hands
     while True:
         hands = HandTrackingSim.get_hands()
-        # hands = Hands(hands_raw)
 
 
 threading.Thread(target=get_hands).start()
@@ -60,6 +56,9 @@ if __name__ == "__main__":
     phys_sim = PhysicsSim(initial_celestial_bodies)
 
     while True:
+        A.game_time += (A.TIME_CHANGE_PER_SECOND / A.TPS) * A.time_change_mult
+        A.sim_time = A.game_time * A.SIM_TIME_EQUIVALENCE
+
         # Closes the application on quit
         for event in A.pygame.event.get():
             if event.type == A.pygame.QUIT:
@@ -71,11 +70,11 @@ if __name__ == "__main__":
 
         if not A.trippy_mode: A.screen.fill("#5a82c2")
 
-        for hand in convertCamHandsToScreenSpaceHands(hands):
+        for hand in convertCamHandsToScreenSpaceHands(hands):  # MAKE INTO STARS LATER
             for lm in hand:
                 A.pygame.draw.circle(A.screen, [0, 0, 0], center=(lm[1], lm[2]), radius=10)
 
-        # for gesture in gestures:
+        # for gesture in gestures:  # DISPLAYS WHAT GESTURES ARE BEING DONE (alL gestures)
         #     gesturingHands = detect_vertebraeC6(hands, gestures[gesture])
         #     if len(gesturingHands) > 0:
         #         print(gesture, "Being Did'd by hands:", gesturingHands)
@@ -134,5 +133,5 @@ if __name__ == "__main__":
                     else:
                         print("TOO CLOSE TO SPAWN PLANET")
 
-        phys_sim.applyForces(phys_sim.calc_forces())
         A.pygame.display.update()
+        A.clock.tick(A.TPS)

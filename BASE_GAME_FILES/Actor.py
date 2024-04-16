@@ -1,7 +1,7 @@
 import pygame
 import atexit
 import sys
-import IHatePythonSyntax
+from IHatePythonSyntax import *
 
 ########################################################################################################################
 #############################################  SIMULATION STUFF  #######################################################
@@ -9,7 +9,13 @@ import IHatePythonSyntax
 
 #  CONSTANTS
 SIM_SCALE = 10 ** 10 * 3
-SCALE_MASS_EQUIVALENCE = SIM_SCALE * 2 ** 18  # SCALE_MASS_EQUIV is a multiple of SIM_SCALE so that SIM_SCALE actually matters
+SCALE_MASS_EQUIVALENCE = 10 ** 11  # this many kg of weight = 1m^2 of size
+GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
+
+#  UNITS:
+#       SIMULATION SCALE : SCALE IN SIM_SCALE, ie. num * SIM_SCALE or num * SCALE_MASS_EQUIVALENCE
+#       PIXEL SCALE      : THE SCALE OF THE PIXELS ON THE SCREEN
+
 
 ########################################################################################################################
 ##############################################  PLAYER MOVEMENT  #######################################################
@@ -28,21 +34,23 @@ player_zoom = 1
 #####################################################  TIME  ###########################################################
 ########################################################################################################################
 
-#  CONSTANTS
-TICK_SPEED_INC = 1
+SIM_TIME_EQUIVALENCE = 10e28
+TIME_CHANGE_PER_SECOND = 1
+TIME_CHANGE_MULT_CHANGE_RATE = 0.01
 
-#  VARIABLES
-tick_speed = 60
-current_game_time = 0
-current_simulated_time = 0
-current_tick = 0
+TPS = 60
+
+sim_time = 0
+game_time = 0
+
+time_change_mult = 1
+
 
 ########################################################################################################################
 ################################################  GAME SPECS  ##########################################################
 ########################################################################################################################
 
 #  CONSTANTS
-WIDTH, HEIGHT = 0, 0
 TRIPPY_MODE = False
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
@@ -83,12 +91,9 @@ motion_gestures = {
 }
 
 pygame.display.init()
-WIDTH, HEIGHT = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
-screen = pygame.display.set_mode([WIDTH, HEIGHT])
-
-
-def tick(ticks):  # NEED TO CONVERT WHOLE SYSTEM TO TICKS
-    print("CHECK TICK VAL")
+SIZE = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
+screen = pygame.display.set_mode(SIZE)
+clock = pygame.time.Clock()
 
 
 def updateMovementParams(keys, A):
@@ -107,6 +112,14 @@ def updateMovementParams(keys, A):
         A.player_zoom = PLAYER_MIN_ZOOM if A.player_zoom - ZOOM_MULT_INC < 0 else A.player_zoom - ZOOM_MULT_INC
 
     if keys[pygame.K_RIGHTBRACKET]:
-        A.tick_speed += TICK_SPEED_INC
+        A.time_change_mult += TIME_CHANGE_MULT_CHANGE_RATE
     if keys[pygame.K_LEFTBRACKET]:
-        A.tick_speed -= TICK_SPEED_INC
+        A.time_change_mult -= TIME_CHANGE_MULT_CHANGE_RATE
+
+
+def ConvToPixelScale(sim_scale: int) -> int:
+    return sim_scale / SIM_SCALE
+
+
+def ConvToSimScale(px_scale: int) -> int:
+    return px_scale * SIM_SCALE
