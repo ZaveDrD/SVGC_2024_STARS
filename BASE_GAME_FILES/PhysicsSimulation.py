@@ -6,8 +6,10 @@ from IHatePythonSyntax import *
 
 
 class CelestialBody:
-    def __init__(self, color, mass, pos, *args):
+    def __init__(self, color, mass, pos: list[int], velocity:  list[float] = [0, 0], acceleration: list[float] = [0, 0], *args):
         # Aesthetic Parameters
+        if velocity is None:
+            velocity = [0, 0]
         self.color: list[int] = color
 
         # Physics Parameters (Const)
@@ -21,11 +23,11 @@ class CelestialBody:
         self.x: float = pos[0]
         self.y: float = pos[1]
 
-        self.ax = 0
-        self.ay = 0
+        self.ax: float = acceleration[0]
+        self.ay: float = acceleration[1]
 
-        self.vx = 0
-        self.vy = 0
+        self.vx: float = velocity[0]
+        self.vy: float = velocity[1]
 
         self.calc_radius()
 
@@ -88,7 +90,7 @@ class CelestialBody:
 
     def display(self):
         if not self.merged:
-            A.pygame.draw.circle(A.screen, self.color, [int(self.position_x), int(self.position_y)], int(self.radius))
+            A.pygame.draw.circle(A.screen, self.color, [int(self.x), int(self.y)], int(self.radius))
 
 
 class PhysicsSim:
@@ -101,5 +103,26 @@ class PhysicsSim:
     def remove_object(self, celestial_objects: list[CelestialBody]):
         self.celestial_bodies.remove(celestial_objects)
 
+    def applyForces(self, objects: list[CelestialBody]):
+        for x in objects:
+            for y in objects:
+                if not x.merged and not y.merged and x != y:
+                    x.calc_collision_data(y)
 
-            
+        for x in objects:
+            x.ax = 0
+            x.ay = 0
+            x.store_force_x = 0
+            x.store_force_y = 0
+
+        for x in objects:
+            for y in objects:
+                if x != y and not x.merged and not y.merged:
+                    x.calc_velocity(y)
+
+        for x in objects:
+            x.calc_pos()
+
+        for i in objects:
+            i.display()
+
