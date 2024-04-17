@@ -25,7 +25,7 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 ########################################################################################################################
 
 #  CONSTANTS
-PLAYER_MOVE_SPEED = 5
+PLAYER_MOVE_SPEED = 7.5
 ZOOM_MULT_INC = 0.01
 PLAYER_MIN_ZOOM = 10 ** -10
 
@@ -39,7 +39,7 @@ player_zoom = 1
 
 SIM_TIME_EQUIVALENCE = 1e11
 TIME_CHANGE_PER_SECOND = 1
-TIME_CHANGE_MULT_CHANGE_RATE = .02
+TIME_CHANGE_MULT_CHANGE_RATE = .2
 
 TPS = 60
 
