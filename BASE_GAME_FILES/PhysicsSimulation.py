@@ -88,7 +88,7 @@ class CelestialBody:
 
     def display(self):
         if not self.merged:
-            A.pygame.draw.circle(A.screen, self.color, [(int(self.x) - A.player_view_pos_x) * A.player_zoom + A.SIZE[0] / 2, (int(self.y) - A.player_view_pos_y) * A.player_zoom + A.SIZE[1] / 2], int(self.radius) * A.player_zoom)
+            A.pygame.draw.circle(A.screen, self.color, [int(self.x) * A.player_zoom - A.player_view_pos_x + A.SIZE[0] / 2, int(self.y) * A.player_zoom - A.player_view_pos_y + A.SIZE[1] / 2], int(self.radius) * A.player_zoom)
 
 
 class PhysicsSim:

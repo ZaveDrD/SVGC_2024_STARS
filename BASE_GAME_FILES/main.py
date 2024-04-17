@@ -1,7 +1,5 @@
-import random
-
 import pygame.time
-
+import random
 from PhysicsSimulation import *
 import sys
 import Actor as A
@@ -48,11 +46,23 @@ def get_hands():
 
 threading.Thread(target=get_hands).start()
 
+
+def GenRandBodies(numBodies: int, min_x: int = -5000, max_x: int = 5000, min_y: int = -5000, max_y: int = 5000, color: list[int] = [255, 255, 255]) -> list[CelestialBody]:  # TESTING PURPOSES ONLY
+    bodies = []
+    for i in range(0, numBodies):
+        bodies.append(CelestialBody(color, 10 ** (random.randint(12, 15)),
+                                                      [random.randint(min_x, max_x), random.randint(min_y, max_y)]))
+    return bodies
+
+
 if __name__ == "__main__":
     initial_celestial_bodies = [
-        CelestialBody([255, 255, 255], 10e15, [0, 0]),
-        CelestialBody([255, 255, 255], 10e14, [1000, 0])
+        # CelestialBody([255, 255, 255], 10e15, [0, 0]),
+        # CelestialBody([255, 255, 255], 10e14, [1000, 500], [-1, 0]),
+        # CelestialBody([255, 255, 255], 10e14 * 5, [0, 2000]),
     ]
+
+    initial_celestial_bodies = GenRandBodies(200, color=[255, 255, 255])  # TESTNG PHYSICS SYSTEM FOR NOW
 
     phys_sim = PhysicsSim(initial_celestial_bodies)
 
