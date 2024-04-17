@@ -6,10 +6,8 @@ from IHatePythonSyntax import *
 
 
 class CelestialBody:
-    def __init__(self, color, mass, pos: list[int], velocity:  list[float] = [0, 0], acceleration: list[float] = [0, 0], *args):
+    def __init__(self, color, mass, pos: list[int], velocity:  list[float] = [0, 0], acceleration: list[float] = [0, 0], start_force: list[int] = [0, 0], *args):
         # Aesthetic Parameters
-        if velocity is None:
-            velocity = [0, 0]
         self.color: list[int] = color
 
         # Physics Parameters (Const)
@@ -17,8 +15,8 @@ class CelestialBody:
 
         # Physics Parameters (Varying)
         self.merged = False
-        self.store_force_x = 0
-        self.store_force_y = 0
+        self.store_force_x = start_force[0]
+        self.store_force_y = start_force[1]
 
         self.x: float = pos[0]
         self.y: float = pos[1]
@@ -63,7 +61,7 @@ class CelestialBody:
 
     def calc_force(self, object):
         distance = math.sqrt((self.x - object.x) ** 2 + (self.y - object.y) ** 2)
-        return A.GRAVITATIONAL_CONSTANT * (self.mass * object.mass) / (distance ** 2)
+        return A.GRAVITATIONAL_CONSTANT * (self.mass * object.mass) / (distance ** 2) / A.ticks_btw_calculations
 
     def calc_collision_data(self, object):
         difX, difY = object.x - self.x, object.y - self.y
@@ -90,7 +88,7 @@ class CelestialBody:
 
     def display(self):
         if not self.merged:
-            A.pygame.draw.circle(A.screen, self.color, [int(self.x), int(self.y)], int(self.radius))
+            A.pygame.draw.circle(A.screen, self.color, [(int(self.x) - A.player_view_pos_x) * A.player_zoom + A.SIZE[0] / 2, (int(self.y) - A.player_view_pos_y) * A.player_zoom + A.SIZE[1] / 2], int(self.radius) * A.player_zoom)
 
 
 class PhysicsSim:
@@ -125,4 +123,3 @@ class PhysicsSim:
 
         for i in objects:
             i.display()
-

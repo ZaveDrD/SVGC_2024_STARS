@@ -1,3 +1,6 @@
+import math
+
+import aes.core.para
 import pygame
 import atexit
 import sys
@@ -22,8 +25,8 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 ########################################################################################################################
 
 #  CONSTANTS
-PLAYER_MOVE_SPEED = 0.5
-ZOOM_MULT_INC = 0.001
+PLAYER_MOVE_SPEED = 5
+ZOOM_MULT_INC = 0.01
 PLAYER_MIN_ZOOM = 10 ** -10
 
 #  VARIABLES
@@ -34,17 +37,17 @@ player_zoom = 1
 #####################################################  TIME  ###########################################################
 ########################################################################################################################
 
-SIM_TIME_EQUIVALENCE = 10e28
+SIM_TIME_EQUIVALENCE = 1e11
 TIME_CHANGE_PER_SECOND = 1
-TIME_CHANGE_MULT_CHANGE_RATE = 0.01
+TIME_CHANGE_MULT_CHANGE_RATE = .02
 
 TPS = 60
 
+time_change_mult = 1
+ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (1 / time_change_mult) / TPS  # WORKS BUT IS A BIT CHEATY, JUST DIVIDES THE FORCES TO APPEAR AS IF SLOWER
+
 sim_time = 0
 game_time = 0
-
-time_change_mult = 1
-
 
 ########################################################################################################################
 ################################################  GAME SPECS  ##########################################################
@@ -98,13 +101,13 @@ clock = pygame.time.Clock()
 
 def updateMovementParams(keys, A):
     if keys[pygame.K_UP]:
-        A.player_view_pos_y += PLAYER_MOVE_SPEED
-    if keys[pygame.K_DOWN]:
         A.player_view_pos_y -= PLAYER_MOVE_SPEED
+    if keys[pygame.K_DOWN]:
+        A.player_view_pos_y += PLAYER_MOVE_SPEED
     if keys[pygame.K_LEFT]:
-        A.player_view_pos_x += PLAYER_MOVE_SPEED
-    if keys[pygame.K_RIGHT]:
         A.player_view_pos_x -= PLAYER_MOVE_SPEED
+    if keys[pygame.K_RIGHT]:
+        A.player_view_pos_x += PLAYER_MOVE_SPEED
 
     if keys[pygame.K_EQUALS]:
         A.player_zoom += ZOOM_MULT_INC
@@ -116,10 +119,15 @@ def updateMovementParams(keys, A):
     if keys[pygame.K_LEFTBRACKET]:
         A.time_change_mult -= TIME_CHANGE_MULT_CHANGE_RATE
 
+    if A.time_change_mult == 0:
+        A.ticks_btw_calculations = 0.01
+    else:
+        A.ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (1 / A.time_change_mult) / TPS
+
 
 def ConvToPixelScale(sim_scale: int) -> int:
-    return sim_scale / SIM_SCALE
+    return sim_scale / (SIM_SCALE / player_zoom)
 
 
 def ConvToSimScale(px_scale: int) -> int:
-    return px_scale * SIM_SCALE
+    return px_scale * (SIM_SCALE / player_zoom)

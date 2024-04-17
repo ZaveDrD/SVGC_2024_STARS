@@ -1,4 +1,7 @@
 import random
+
+import pygame.time
+
 from PhysicsSimulation import *
 import sys
 import Actor as A
@@ -47,8 +50,8 @@ threading.Thread(target=get_hands).start()
 
 if __name__ == "__main__":
     initial_celestial_bodies = [
-        CelestialBody([255, 255, 255], 10e15, [500, 500]),
-        CelestialBody([255, 255, 255], 10e14, [1500, 500])
+        CelestialBody([255, 255, 255], 10e15, [0, 0]),
+        CelestialBody([255, 255, 255], 10e14, [1000, 0])
     ]
 
     phys_sim = PhysicsSim(initial_celestial_bodies)
@@ -65,8 +68,6 @@ if __name__ == "__main__":
 
         keys = A.pygame.key.get_pressed()
         A.updateMovementParams(keys, A)
-
-        if not A.TRIPPY_MODE: A.screen.fill("#5a82c2")
 
         for hand in convertCamHandsToScreenSpaceHands(hands):  # MAKE INTO STARS LATER
             for lm in hand:
@@ -96,7 +97,7 @@ if __name__ == "__main__":
         #
         #             if abs(math.dist(landmarkCoord, plantPos)) <= planetaryBody.mass / A.SCALE_MASS_EQUIVALENCE:
         #                 planetaryBody.updatePlanetPosition_ScreenSpace(landmarkCoord[0], landmarkCoord[1])
-        #
+
         # planetSummoningHands = detect_vertebraeC6(convertCamHandsToScreenSpaceHands(hands), A.gestures['Summon Small Planet'])
         # if len(planetSummoningHands) > 0:
         #     for planetaryBody in initial_celestial_bodies:  # SUMMON PLANETS
@@ -131,6 +132,8 @@ if __name__ == "__main__":
         #             else:
         #                 print("TOO CLOSE TO SPAWN PLANET")
 
+        if not A.TRIPPY_MODE: A.screen.fill("#5a82c2")
         phys_sim.applyForces(phys_sim.celestial_bodies)
+
         A.pygame.display.update()
         A.clock.tick(A.TPS)
