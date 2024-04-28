@@ -2,7 +2,7 @@ import cv2
 import math
 
 import HandTracking.HandTrackingModule as htm
-from BASE_GAME_FILES.scripts.Actor import gesture_tracking_sim, SIZE, gestures
+from BASE_GAME_FILES.scripts.Actor import SIZE, gestures
 
 SMOOTHING_CONSTANT: int = 7
 cap = cv2.VideoCapture(0)
@@ -57,7 +57,7 @@ class Hand:
 
     def __init__(self, landmarks: list[list[int]]):
         self.landmarks = landmarks
-        self.screenSpace_lm = gesture_tracking_sim.calcScreenSpaceLandmarks(landmarks)
+        self.screenSpace_lm = HandSim.calcScreenSpaceLandmarks(landmarks)
         self.gestures = gestures
 
 

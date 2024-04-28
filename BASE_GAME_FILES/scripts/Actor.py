@@ -1,13 +1,7 @@
 import pygame
 import atexit
 import sys
-import threading
 import random
-
-from BASE_GAME_FILES.scripts.PhysicsSimulation import *
-from BASE_GAME_FILES.scripts.HandTrackingSim import *
-from BASE_GAME_FILES.scripts.GestureTrackingSim import *
-from BASE_GAME_FILES.scripts.Utils import *
 
 ########################################################################################################################
 #############################################  SIMULATION STUFF  #######################################################
@@ -145,15 +139,6 @@ motion_gestures = {
     ]
 }
 
-hands: list = None
-
-
-def get_hands():
-    global hands
-    while True:
-        hands = hand_tracking_sim.get_hands()
-
-
 ########################################################################################################################
 ################################################  GAME SETUP  ##########################################################
 ########################################################################################################################
@@ -163,9 +148,3 @@ SIZE = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop
 
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
-
-gesture_tracking_sim = GestureSim()
-hand_tracking_sim = HandSim()
-phys_sim = PhysicsSim(INITIAL_CELESTIAL_BODIES)
-
-threading.Thread(target=get_hands).start()
