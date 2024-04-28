@@ -1,5 +1,5 @@
 import pygame
-from Actor import SIM_SCALE, player_zoom
+from BASE_GAME_FILES.scripts.Actor import SIM_SCALE, player_zoom
 
 BASE_IMG_PATH = ""
 

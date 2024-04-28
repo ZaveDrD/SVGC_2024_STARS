@@ -4,10 +4,10 @@ import sys
 import threading
 import random
 
-import PhysicsSimulation
-import GestureTrackingSim
-import HandTrackingSim
-import Utils
+from BASE_GAME_FILES.scripts.PhysicsSimulation import *
+from BASE_GAME_FILES.scripts.HandTrackingSim import *
+from BASE_GAME_FILES.scripts.GestureTrackingSim import *
+from BASE_GAME_FILES.scripts.Utils import *
 
 ########################################################################################################################
 #############################################  SIMULATION STUFF  #######################################################
@@ -25,16 +25,16 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 
 
 def GenRandBodies(numBodies: int, min_x: int = -5000, max_x: int = 5000, min_y: int = -5000, max_y: int = 5000,
-                  color: list[int] = [255, 255, 255]) -> list[PhysicsSimulation.CelestialBody]:  # TESTING PURPOSES ONLY
+                  color: list[int] = [255, 255, 255]) -> list[CelestialBody]:  # TESTING PURPOSES ONLY
     bodies = []
     for i in range(0, numBodies):
-        bodies.append(PhysicsSimulation.CelestialBody(color, 10 ** (random.randint(12, 15)),
+        bodies.append(CelestialBody(color, 10 ** (random.randint(12, 15)),
                                     [random.randint(min_x, max_x), random.randint(min_y, max_y)]))
     return bodies
 
 
 INITIAL_CELESTIAL_BODIES = [
-    PhysicsSimulation.CelestialBody([255, 255, 255], 10e15, [0, 0])
+    CelestialBody([255, 255, 255], 10e15, [0, 0])
 ]
 
 # INITIAL_CELESTIAL_BODIES = GenRandBodies(200, color=[255, 255, 255])  # TESTNG PHYSICS SYSTEM FOR NOW
@@ -145,11 +145,13 @@ motion_gestures = {
     ]
 }
 
+hands: list = None
+
 
 def get_hands():
     global hands
     while True:
-        hands = HandTrackingSim.get_hands()
+        hands = hand_tracking_sim.get_hands()
 
 
 ########################################################################################################################
@@ -162,8 +164,8 @@ SIZE = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
-gesture_tracking_sim = GestureTrackingSim.GestureSim()
-hand_tracking_sim = HandTrackingSim.HandSim()
-phys_sim = PhysicsSimulation.PhysicsSim(INITIAL_CELESTIAL_BODIES)
+gesture_tracking_sim = GestureSim()
+hand_tracking_sim = HandSim()
+phys_sim = PhysicsSim(INITIAL_CELESTIAL_BODIES)
 
 threading.Thread(target=get_hands).start()

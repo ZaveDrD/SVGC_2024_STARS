@@ -2,7 +2,7 @@ import cv2
 import math
 
 import HandTracking.HandTrackingModule as htm
-from Actor import gesture_tracking_sim, SIZE, gestures
+from BASE_GAME_FILES.scripts.Actor import gesture_tracking_sim, SIZE, gestures
 
 SMOOTHING_CONSTANT: int = 7
 cap = cv2.VideoCapture(0)

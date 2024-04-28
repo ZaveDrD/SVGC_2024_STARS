@@ -1,7 +1,7 @@
 import math
 import time
 
-from Actor import gesture_tracking_sim
+from BASE_GAME_FILES.scripts.Actor import gesture_tracking_sim
 
 
 class Gesture:

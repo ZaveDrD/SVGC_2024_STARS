@@ -1,7 +1,7 @@
 import math
 import pygame
 
-from Actor import player_view_pos_x, player_view_pos_y, SCALE_MASS_EQUIVALENCE, player_zoom, GRAVITATIONAL_CONSTANT, \
+from BASE_GAME_FILES.scripts.Actor import player_view_pos_x, player_view_pos_y, SCALE_MASS_EQUIVALENCE, player_zoom, GRAVITATIONAL_CONSTANT, \
     ticks_btw_calculations, screen
 
 
