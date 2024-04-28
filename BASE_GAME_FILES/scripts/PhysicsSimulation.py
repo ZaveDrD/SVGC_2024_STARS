@@ -1,12 +1,13 @@
 import math
-import numpy as np
-from typing import Type
-import Actor as A
-from IHatePythonSyntax import *
+import pygame
+
+from Actor import player_view_pos_x, player_view_pos_y, SCALE_MASS_EQUIVALENCE, player_zoom, GRAVITATIONAL_CONSTANT, \
+    ticks_btw_calculations, screen
 
 
 class CelestialBody:
-    def __init__(self, color, mass, pos: list[int], velocity:  list[float] = [0, 0], acceleration: list[float] = [0, 0], start_force: list[int] = [0, 0], *args):
+    def __init__(self, color, mass, pos: list[int], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], *args):
         # Aesthetic Parameters
         self.color: list[int] = color
 
@@ -21,6 +22,9 @@ class CelestialBody:
         self.x: float = pos[0]
         self.y: float = pos[1]
 
+        self.px = None
+        self.py = None
+
         self.ax: float = acceleration[0]
         self.ay: float = acceleration[1]
 
@@ -29,8 +33,12 @@ class CelestialBody:
 
         self.calc_radius()
 
+    def set_pos(self, pos: list[float]):
+        self.x = (math.floor(pos[0]) + player_view_pos_x)
+        self.y = (math.floor(pos[1]) + player_view_pos_y)
+
     def calc_radius(self):
-        self.radius = math.sqrt((self.mass / A.SCALE_MASS_EQUIVALENCE) / math.pi)
+        self.radius = math.sqrt((self.mass / SCALE_MASS_EQUIVALENCE) / math.pi)
 
     def calc_pos(self):
         self.x += self.vx
@@ -61,7 +69,7 @@ class CelestialBody:
 
     def calc_force(self, object):
         distance = math.sqrt((self.x - object.x) ** 2 + (self.y - object.y) ** 2)
-        return A.GRAVITATIONAL_CONSTANT * (self.mass * object.mass) / (distance ** 2) / A.ticks_btw_calculations
+        return GRAVITATIONAL_CONSTANT * (self.mass * object.mass) / (distance ** 2) / ticks_btw_calculations
 
     def calc_collision_data(self, object):
         difX, difY = object.x - self.x, object.y - self.y
@@ -76,19 +84,21 @@ class CelestialBody:
                 self.vx = momentumX / self.mass
                 self.vy = momentumY / self.mass
 
-                object.merged = true
+                object.merged = True
                 self.calc_radius()
             else:
                 object.mass += self.mass
                 object.vx = momentumX / object.mass
                 object.vy = momentumY / object.mass
 
-                self.merged = true
+                self.merged = True
                 object.calc_radius()
 
     def display(self):
         if not self.merged:
-            A.pygame.draw.circle(A.screen, self.color, [int(self.x) * A.player_zoom - A.player_view_pos_x + A.SIZE[0] / 2, int(self.y) * A.player_zoom - A.player_view_pos_y + A.SIZE[1] / 2], int(self.radius) * A.player_zoom)
+            self.px = int(self.x) * player_zoom - player_view_pos_x
+            self.py = int(self.y) * player_zoom - player_view_pos_y
+            pygame.draw.circle(screen, self.color, [self.px, self.py], int(self.radius) * player_zoom)
 
 
 class PhysicsSim:
@@ -96,10 +106,12 @@ class PhysicsSim:
         self.celestial_bodies = celestial_objects
 
     def add_object(self, celestial_objects: list[CelestialBody]):
-        self.celestial_bodies.append(celestial_objects)
+        for obj in celestial_objects:
+            self.celestial_bodies.append(obj)
 
     def remove_object(self, celestial_objects: list[CelestialBody]):
-        self.celestial_bodies.remove(celestial_objects)
+        for obj in celestial_objects:
+            self.celestial_bodies.remove(obj)
 
     def applyForces(self, objects: list[CelestialBody]):
         for x in objects:

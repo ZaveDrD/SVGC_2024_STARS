@@ -1,10 +1,13 @@
-import math
-
-import aes.core.para
 import pygame
 import atexit
 import sys
-from IHatePythonSyntax import *
+import threading
+import random
+
+import PhysicsSimulation
+import GestureTrackingSim
+import HandTrackingSim
+import Utils
 
 ########################################################################################################################
 #############################################  SIMULATION STUFF  #######################################################
@@ -15,9 +18,26 @@ SIM_SCALE = 10 ** 10 * 3
 SCALE_MASS_EQUIVALENCE = 10 ** 11  # this many kg of weight = 1m^2 of size
 GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 
+
 #  UNITS:
 #       SIMULATION SCALE : SCALE IN SIM_SCALE, ie. num * SIM_SCALE or num * SCALE_MASS_EQUIVALENCE
 #       PIXEL SCALE      : THE SCALE OF THE PIXELS ON THE SCREEN
+
+
+def GenRandBodies(numBodies: int, min_x: int = -5000, max_x: int = 5000, min_y: int = -5000, max_y: int = 5000,
+                  color: list[int] = [255, 255, 255]) -> list[PhysicsSimulation.CelestialBody]:  # TESTING PURPOSES ONLY
+    bodies = []
+    for i in range(0, numBodies):
+        bodies.append(PhysicsSimulation.CelestialBody(color, 10 ** (random.randint(12, 15)),
+                                    [random.randint(min_x, max_x), random.randint(min_y, max_y)]))
+    return bodies
+
+
+INITIAL_CELESTIAL_BODIES = [
+    PhysicsSimulation.CelestialBody([255, 255, 255], 10e15, [0, 0])
+]
+
+# INITIAL_CELESTIAL_BODIES = GenRandBodies(200, color=[255, 255, 255])  # TESTNG PHYSICS SYSTEM FOR NOW
 
 
 ########################################################################################################################
@@ -33,6 +53,33 @@ PLAYER_MIN_ZOOM = 10 ** -10
 player_view_pos_x, player_view_pos_y = 0, 0
 player_zoom = 1
 
+
+def updateMovementParams(keys, A):
+    if keys[pygame.K_UP]:
+        A.player_view_pos_y -= PLAYER_MOVE_SPEED
+    if keys[pygame.K_DOWN]:
+        A.player_view_pos_y += PLAYER_MOVE_SPEED
+    if keys[pygame.K_LEFT]:
+        A.player_view_pos_x -= PLAYER_MOVE_SPEED
+    if keys[pygame.K_RIGHT]:
+        A.player_view_pos_x += PLAYER_MOVE_SPEED
+
+    if keys[pygame.K_EQUALS]:
+        A.player_zoom += ZOOM_MULT_INC
+    if keys[pygame.K_MINUS]:
+        A.player_zoom = PLAYER_MIN_ZOOM if A.player_zoom - ZOOM_MULT_INC < 0 else A.player_zoom - ZOOM_MULT_INC
+
+    if keys[pygame.K_RIGHTBRACKET]:
+        A.time_change_mult += TIME_CHANGE_MULT_CHANGE_RATE
+    if keys[pygame.K_LEFTBRACKET]:
+        A.time_change_mult -= TIME_CHANGE_MULT_CHANGE_RATE
+
+    if A.time_change_mult == 0:
+        A.ticks_btw_calculations = 0.01
+    else:
+        A.ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (1 / A.time_change_mult) / TPS
+
+
 ########################################################################################################################
 #####################################################  TIME  ###########################################################
 ########################################################################################################################
@@ -44,7 +91,8 @@ TIME_CHANGE_MULT_CHANGE_RATE = .2
 TPS = 60
 
 time_change_mult = 1
-ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (1 / time_change_mult) / TPS  # WORKS BUT IS A BIT CHEATY, JUST DIVIDES THE FORCES TO APPEAR AS IF SLOWER
+ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (
+            1 / time_change_mult) / TPS  # WORKS BUT IS A BIT CHEATY, JUST DIVIDES THE FORCES TO APPEAR AS IF SLOWER
 
 sim_time = 0
 game_time = 0
@@ -57,6 +105,10 @@ game_time = 0
 TRIPPY_MODE = False
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
+
+########################################################################################################################
+############################################  HAND-TRACKING STUFF  #####################################################
+########################################################################################################################
 
 gestures = {
     #   True      ->      Less Than        ->     dist < X
@@ -93,41 +145,25 @@ motion_gestures = {
     ]
 }
 
+
+def get_hands():
+    global hands
+    while True:
+        hands = HandTrackingSim.get_hands()
+
+
+########################################################################################################################
+################################################  GAME SETUP  ##########################################################
+########################################################################################################################
+
 pygame.display.init()
 SIZE = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
+
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
+gesture_tracking_sim = GestureTrackingSim.GestureSim()
+hand_tracking_sim = HandTrackingSim.HandSim()
+phys_sim = PhysicsSimulation.PhysicsSim(INITIAL_CELESTIAL_BODIES)
 
-def updateMovementParams(keys, A):
-    if keys[pygame.K_UP]:
-        A.player_view_pos_y -= PLAYER_MOVE_SPEED
-    if keys[pygame.K_DOWN]:
-        A.player_view_pos_y += PLAYER_MOVE_SPEED
-    if keys[pygame.K_LEFT]:
-        A.player_view_pos_x -= PLAYER_MOVE_SPEED
-    if keys[pygame.K_RIGHT]:
-        A.player_view_pos_x += PLAYER_MOVE_SPEED
-
-    if keys[pygame.K_EQUALS]:
-        A.player_zoom += ZOOM_MULT_INC
-    if keys[pygame.K_MINUS]:
-        A.player_zoom = PLAYER_MIN_ZOOM if A.player_zoom - ZOOM_MULT_INC < 0 else A.player_zoom - ZOOM_MULT_INC
-
-    if keys[pygame.K_RIGHTBRACKET]:
-        A.time_change_mult += TIME_CHANGE_MULT_CHANGE_RATE
-    if keys[pygame.K_LEFTBRACKET]:
-        A.time_change_mult -= TIME_CHANGE_MULT_CHANGE_RATE
-
-    if A.time_change_mult == 0:
-        A.ticks_btw_calculations = 0.01
-    else:
-        A.ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (1 / A.time_change_mult) / TPS
-
-
-def ConvToPixelScale(sim_scale: int) -> int:
-    return sim_scale / (SIM_SCALE / player_zoom)
-
-
-def ConvToSimScale(px_scale: int) -> int:
-    return px_scale * (SIM_SCALE / player_zoom)
+threading.Thread(target=get_hands).start()
