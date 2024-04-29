@@ -19,6 +19,22 @@ def get_hands():
         hands = HandTrackingSim.HandSim.get_hands()
 
 
+def GenRandBodies(numBodies: int, min_x: int = -5000, max_x: int = 5000, min_y: int = -5000, max_y: int = 5000,
+                  color: list[int] = [255, 255, 255]) -> list[PhysicsSimulation.CelestialBody]:  # TESTING PURPOSES ONLY
+    bodies = []
+    for i in range(0, numBodies):
+        bodies.append(PhysicsSimulation.CelestialBody(color, 10 ** (random.randint(12, 15)),
+                                    [random.randint(min_x, max_x), random.randint(min_y, max_y)]))
+    return bodies
+
+
+INITIAL_CELESTIAL_BODIES = [
+    PhysicsSimulation.CelestialBody([255, 255, 255], 10e15, [0, 0])
+]
+
+# INITIAL_CELESTIAL_BODIES = GenRandBodies(200, color=[255, 255, 255])  # TESTNG PHYSICS SYSTEM FOR NOW
+
+
 def start_game():
     gesture_tracking_sim = GestureTrackingSim.GestureSim()
     hand_tracking_sim = HandTrackingSim.HandSim()

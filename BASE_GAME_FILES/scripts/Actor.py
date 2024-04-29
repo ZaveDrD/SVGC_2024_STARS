@@ -17,23 +17,6 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 #       SIMULATION SCALE : SCALE IN SIM_SCALE, ie. num * SIM_SCALE or num * SCALE_MASS_EQUIVALENCE
 #       PIXEL SCALE      : THE SCALE OF THE PIXELS ON THE SCREEN
 
-
-def GenRandBodies(numBodies: int, min_x: int = -5000, max_x: int = 5000, min_y: int = -5000, max_y: int = 5000,
-                  color: list[int] = [255, 255, 255]) -> list[CelestialBody]:  # TESTING PURPOSES ONLY
-    bodies = []
-    for i in range(0, numBodies):
-        bodies.append(CelestialBody(color, 10 ** (random.randint(12, 15)),
-                                    [random.randint(min_x, max_x), random.randint(min_y, max_y)]))
-    return bodies
-
-
-INITIAL_CELESTIAL_BODIES = [
-    CelestialBody([255, 255, 255], 10e15, [0, 0])
-]
-
-# INITIAL_CELESTIAL_BODIES = GenRandBodies(200, color=[255, 255, 255])  # TESTNG PHYSICS SYSTEM FOR NOW
-
-
 ########################################################################################################################
 ##############################################  PLAYER MOVEMENT  #######################################################
 ########################################################################################################################
