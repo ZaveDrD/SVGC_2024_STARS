@@ -2,7 +2,7 @@ import cv2
 import math
 
 import HandTracking.HandTrackingModule as htm
-from BASE_GAME_FILES.scripts.Actor import SIZE, gestures
+import BASE_GAME_FILES.scripts.Actor as A
 
 SMOOTHING_CONSTANT: int = 7
 cap = cv2.VideoCapture(0)
@@ -39,26 +39,27 @@ class HandSim:
 
         return hands
 
-    @staticmethod
-    def calcScreenSpaceLandmarks(landmarks: list[list[int]]) -> list[list[int]]:
-        new_hand_lm = []
-        for lm in landmarks:
-            new_hand_lm.append([lm[0], lm[1] * (-SIZE[0] / 640) + SIZE[0], lm[2] * (SIZE[1] / 480), lm[3]])
-        return new_hand_lm
 
-    def convertCamHandsToScreenSpaceHands(self, hands: list[list[list[int]]]) -> list[list[list[int]]]:
-        new_hand_list = []
-        for hand in hands:
-            new_hand_list.append(self.calcScreenSpaceLandmarks(hand))
-        return new_hand_list
+def calcScreenSpaceLandmarks(landmarks: list[list[int]]) -> list[list[int]]:
+    new_hand_lm = []
+    for lm in landmarks:
+        new_hand_lm.append([lm[0], lm[1] * (-A.SIZE[0] / 640) + A.SIZE[0], lm[2] * (A.SIZE[1] / 480), lm[3]])
+    return new_hand_lm
+
+
+def convertCamHandsToScreenSpaceHands(hands: list[list[list[int]]]) -> list[list[list[int]]]:
+    new_hand_list = []
+    for hand in hands:
+        new_hand_list.append(calcScreenSpaceLandmarks(hand))
+    return new_hand_list
 
 
 class Hand:
 
     def __init__(self, landmarks: list[list[int]]):
         self.landmarks = landmarks
-        self.screenSpace_lm = HandSim.calcScreenSpaceLandmarks(landmarks)
-        self.gestures = gestures
+        self.screenSpace_lm = calcScreenSpaceLandmarks(landmarks)
+        self.gestures = A.gestures
 
 
 class Hands:

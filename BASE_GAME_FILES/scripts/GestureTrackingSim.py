@@ -135,7 +135,7 @@ class MotionGesture(Gesture):
 
 class GestureSim:
 
-    def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list[int]:
+    def detect_vertebraeC6(self, hands: list[list[list[int]]], params: list[list]) -> list[int]:
         """
         Detect Gestures
         Args:

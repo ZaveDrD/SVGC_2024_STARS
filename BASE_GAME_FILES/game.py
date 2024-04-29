@@ -8,15 +8,18 @@ import BASE_GAME_FILES.scripts.GestureTrackingSim as GestureTrackingSim
 import BASE_GAME_FILES.scripts.HandTrackingSim as HandTrackingSim
 import BASE_GAME_FILES.scripts.Utils as utils
 
-import scripts.Actor as A
+import BASE_GAME_FILES.scripts.Actor as A
 
-hands: list = None
+hands: list = []
 
 
 def get_hands():
     global hands
     while True:
         hands = HandTrackingSim.HandSim.get_hands()
+
+
+threading.Thread(target=get_hands).start()
 
 
 def GenRandBodies(numBodies: int, min_x: int = -5000, max_x: int = 5000, min_y: int = -5000, max_y: int = 5000,
@@ -36,11 +39,10 @@ INITIAL_CELESTIAL_BODIES = [
 
 
 def start_game():
-    gesture_tracking_sim = GestureTrackingSim.GestureSim()
-    hand_tracking_sim = HandTrackingSim.HandSim()
-    phys_sim = PhysicsSimulation.PhysicsSim(A.INITIAL_CELESTIAL_BODIES)
 
-    threading.Thread(target=get_hands).start()
+    gesture_sim = GestureTrackingSim.GestureSim()
+    hand_sim = HandTrackingSim.HandSim()
+    phys_sim = PhysicsSimulation.PhysicsSim(INITIAL_CELESTIAL_BODIES)
 
     while True:
         A.game_time += (A.TIME_CHANGE_PER_SECOND / A.TPS) * A.time_change_mult
@@ -57,7 +59,7 @@ def start_game():
         keys = A.pygame.key.get_pressed()
         A.updateMovementParams(keys, A)
 
-        for hand in hand_tracking_sim.convertCamHandsToScreenSpaceHands(A.hands):  # MAKE INTO STARS LATER
+        for hand in HandTrackingSim.convertCamHandsToScreenSpaceHands(hands):  # MAKE INTO STARS LATER
             for lm in hand:
                 A.pygame.draw.circle(A.screen, [0, 0, 0], center=(lm[1], lm[2]), radius=10)
 
@@ -66,16 +68,15 @@ def start_game():
         #     if len(gesturingHands) > 0:
         #         print(gesture, "Being Did'd by hands:", gesturingHands)
 
-        pinchingHands = gesture_tracking_sim.detect_vertebraeC6(
-            hand_tracking_sim.convertCamHandsToScreenSpaceHands(A.hands), A.gestures['Pinch'])
+        pinchingHands = gesture_sim.detect_vertebraeC6(HandTrackingSim.convertCamHandsToScreenSpaceHands(hands), A.gestures['Pinch'])
         if len(pinchingHands) > 0:
             for planetaryBody in phys_sim.celestial_bodies:  # PINCH DETECTION TO GRAB PLANETS
                 if planetaryBody.merged: continue
                 for hand in pinchingHands:
                     if hand is None: break
-                    if hand >= len(A.hands): break
+                    if hand >= len(hands): break
 
-                    pinchingHand = hand_tracking_sim.calcScreenSpaceLandmarks(A.hands[hand])
+                    pinchingHand = HandTrackingSim.calcScreenSpaceLandmarks(hands[hand])
                     landmarkCoord = [pinchingHand[A.gestures['Pinch'][0][0][1]][1],
                                      pinchingHand[A.gestures['Pinch'][0][0][1]][2]]
 
@@ -84,16 +85,16 @@ def start_game():
                     if abs(math.dist(landmarkCoord, bodyPos)) <= planetaryBody.radius * A.player_zoom:
                         planetaryBody.set_pos([landmarkCoord[0], landmarkCoord[1]])
 
-        planetSummoningHands = gesture_tracking_sim.detect_vertebraeC6(
-            hand_tracking_sim.convertCamHandsToScreenSpaceHands(A.hands), A.gestures['Summon Small Planet'])
+        planetSummoningHands = gesture_sim.detect_vertebraeC6(
+            HandTrackingSim.convertCamHandsToScreenSpaceHands(hands), A.gestures['Summon Small Planet'])
         if len(planetSummoningHands) > 0:
             for planetaryBody in phys_sim.celestial_bodies:  # SUMMON PLANETS
                 if planetaryBody.merged: continue
                 for hand in planetSummoningHands:
                     if hand is None: break
-                    if hand >= len(A.hands): break
+                    if hand >= len(hands): break
 
-                    summoningHand = hand_tracking_sim.calcScreenSpaceLandmarks(A.hands[hand])
+                    summoningHand = HandTrackingSim.calcScreenSpaceLandmarks(hands[hand])
 
                     landmarkCoord = [(summoningHand[9][1] + summoningHand[12][1]) / 2,
                                      (summoningHand[9][2] + summoningHand[12][2]) / 2]
@@ -104,16 +105,15 @@ def start_game():
                     for body in phys_sim.celestial_bodies:
                         if planetaryBody.merged: continue
 
-                        if body.px - planetPosPadding <= landmarkCoord[0] <= body.px + planetPosPadding and \
-                                body.py - planetPosPadding <= landmarkCoord[1] <= body.py + planetPosPadding:
+                        if body.px - (body.radius * A.player_zoom) - planetPosPadding <= landmarkCoord[0] <= body.px + (body.radius * A.player_zoom) + planetPosPadding and \
+                                body.py - (body.radius * A.player_zoom) - planetPosPadding <= landmarkCoord[1] <= body.py + (body.radius * A.player_zoom) + planetPosPadding:
                             canPlaceBody = False
                             continue
 
                     if canPlaceBody:
-                        body = PhysicsSimulation.CelestialBody('Small Planet',
-                                                               [random.randint(0, 255), random.randint(0, 255),
-                                                                random.randint(0, 255)],
-                                                               2 * 10 ** 30 * 50, [landmarkCoord[0], landmarkCoord[1]])
+                        print("Spawned Object")
+                        body = PhysicsSimulation.CelestialBody([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)],
+                                                               10e14, [landmarkCoord[0], landmarkCoord[1]])
                         phys_sim.add_object([body])
                     else:
                         print("TOO CLOSE TO SPAWN PLANET")
@@ -122,3 +122,6 @@ def start_game():
 
         A.pygame.display.update()
         A.clock.tick(A.TPS)
+
+
+start_game()
