@@ -5,8 +5,8 @@ import BASE_GAME_FILES.scripts.Actor as A
 
 
 class CelestialBody:
-    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
-                 start_force: list[int] = [0, 0], *args):
+    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0], \
+                 start_force: list[int] = [0, 0],  *args):
         # Aesthetic Parameters
         self.color: list[int] = color
 
@@ -102,7 +102,7 @@ class CelestialBody:
     def display(self):
         if not self.merged:
             self.updatePixelValues()
-            pygame.draw.circle(A.screen, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
+            pygame.draw.circle(A.game_specs.screen, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
 
 
 class PhysicsSim:
@@ -117,7 +117,8 @@ class PhysicsSim:
         for obj in celestial_objects:
             self.celestial_bodies.remove(obj)
 
-    def applyForces(self, objects: list[CelestialBody]):
+    @staticmethod
+    def applyForces(objects: list[CelestialBody]):
         for x in objects:
             for y in objects:
                 if not x.merged and not y.merged and x != y:

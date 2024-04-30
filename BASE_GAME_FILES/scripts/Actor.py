@@ -1,7 +1,6 @@
 import pygame
 import atexit
 import sys
-import random
 
 ########################################################################################################################
 #############################################  SIMULATION STUFF  #######################################################
@@ -25,6 +24,7 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 PLAYER_MOVE_SPEED = 7.5
 ZOOM_MULT_INC = 0.01
 PLAYER_MIN_ZOOM = 10 ** -10
+SAVE_LEVELS = True
 
 #  VARIABLES
 player_view_pos_x, player_view_pos_y = 0, 0
@@ -57,6 +57,20 @@ def updateMovementParams(keys, A):
         A.ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (1 / A.time_change_mult) / TPS
 
 
+def updateCurrentLevel(keys, levelLoader):
+    if keys[pygame.K_PERIOD]:
+        print(levelLoader.currentLevelIndex + 1, len(levelLoader.levels))
+        if levelLoader.currentLevelIndex + 1 < len(levelLoader.levels):
+            levelLoader.load_level_index(levelLoader.currentLevelIndex + 1, SAVE_LEVELS)
+            print("NEXT LEVEL LOADED")
+    elif keys[pygame.K_COMMA]:
+        print(levelLoader.currentLevelIndex + 1, len(levelLoader.levels))
+        if levelLoader.currentLevelIndex - 1 >= 0:
+            levelLoader.load_level_index(levelLoader.currentLevelIndex - 1, SAVE_LEVELS)
+            print("PREVIOUS LEVEL LOADED")
+    return levelLoader.currentLevelPhysSim
+
+
 ########################################################################################################################
 #####################################################  TIME  ###########################################################
 ########################################################################################################################
@@ -78,8 +92,8 @@ game_time = 0
 ################################################  GAME SPECS  ##########################################################
 ########################################################################################################################
 
-#  CONSTANTS
-TRIPPY_MODE = False
+#  VARIABLES
+selected_level = 1
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
 
@@ -126,8 +140,19 @@ motion_gestures = {
 ################################################  GAME SETUP  ##########################################################
 ########################################################################################################################
 
-pygame.display.init()
-SIZE = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
 
-screen = pygame.display.set_mode(SIZE)
-clock = pygame.time.Clock()
+class GameSpecs:
+    def __init__(self):
+        pygame.init()
+
+        self.SIZE = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
+
+        pygame.display.set_caption("SVGC 2024 - Stars")
+        self.screen = pygame.display.set_mode(self.SIZE)
+        self.display = pygame.Surface((self.SIZE[0] / 2, self.SIZE[1] / 2))
+
+        self.clock = pygame.time.Clock()
+
+
+game_specs: GameSpecs = None
+
