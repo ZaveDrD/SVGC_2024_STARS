@@ -111,7 +111,7 @@ class MotionGesture(Gesture):
         for num, hand in enumerate(hands):
             if hand not in self.hands or self.hands[hand][1] == -1:
                 index = self.params[0]['index']
-                if GestureSim.detect_vertebraeC6(hands, self.params[0]['gesture']):
+                if GestureSim.detect_vertebraeC6(self.params[0]['gesture']):
                     self.hands.append([num, 0, hand[index[1]]])
                 else:
                     hands.append([num, -1, hand[index[1]]])
@@ -126,7 +126,7 @@ class MotionGesture(Gesture):
                     self.hands[num][2] = 0
                     self.hands[3] = [0, 0]
 
-                if GestureSim.detect_vertebraeC6(hands, params['gesture']) and\
+                if GestureSim.detect_vertebraeC6(params['gesture']) and\
                     abs(params['x']-hand[index[3]][0]) < 30 and abs(params['y']-hand[index[3][1]]) < 30:
                     self.hands[num][1] += 1
                     self.hands[num][2] = hand[index[3][0]][index[3][1]]
@@ -135,7 +135,8 @@ class MotionGesture(Gesture):
 
 class GestureSim:
 
-    def detect_vertebraeC6(self, hands: list[list[list[int]]], params: list[list]) -> list[int]:
+    @staticmethod
+    def detect_vertebraeC6(hands: list[list[list[int]]], params: list[list]) -> list[int]:
         """
         Detect Gestures
         Args:

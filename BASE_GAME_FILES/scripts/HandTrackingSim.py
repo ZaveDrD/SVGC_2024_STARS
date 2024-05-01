@@ -43,7 +43,7 @@ class HandSim:
 def calcScreenSpaceLandmarks(landmarks: list[list[int]]) -> list[list[int]]:
     new_hand_lm = []
     for lm in landmarks:
-        new_hand_lm.append([lm[0], lm[1] * (-A.game_specs.SIZE[0] / 640) + A.game_specs.SIZE[0], lm[2] * (A.game_specs.SIZE[1] / 480), lm[3]])
+        new_hand_lm.append([lm[0], (lm[1] * (-A.game_specs.SIZE[0] / 640) + A.game_specs.SIZE[0]) / 2, (lm[2] * (A.game_specs.SIZE[1] / 480)) / 2, lm[3]])
     return new_hand_lm
 
 

@@ -23,7 +23,6 @@ class CelestialBody:
 
         self.px = None
         self.py = None
-        self.updatePixelValues()
 
         self.ax: float = acceleration[0]
         self.ay: float = acceleration[1]
@@ -35,8 +34,8 @@ class CelestialBody:
         self.calc_radius()
 
     def set_pos(self, pos: list[float]):
-        self.x = (math.floor(pos[0]) + A.player_view_pos_x)
-        self.y = (math.floor(pos[1]) + A.player_view_pos_y)
+        self.x = math.floor(pos[0]) - A.player_view_pos_x
+        self.y = math.floor(pos[1]) - A.player_view_pos_y
 
     def calc_radius(self):
         self.radius = math.sqrt((self.mass / A.SCALE_MASS_EQUIVALENCE) / math.pi)
@@ -96,13 +95,19 @@ class CelestialBody:
                 object.calc_radius()
 
     def updatePixelValues(self):
-        self.px = int(self.x) * A.player_zoom - A.player_view_pos_x
-        self.py = int(self.y) * A.player_zoom - A.player_view_pos_y
+        body_pos = [int(self.x), int(self.y)]
+        screen_centre_pos = [(A.game_specs.SIZE[0] / 4 + A.player_view_pos_x), (A.game_specs.SIZE[1] / 4 + A.player_view_pos_y)]
+        distance = [body_pos[0] - screen_centre_pos[0], body_pos[1] - screen_centre_pos[1]]
+
+        # print("POS OF BODY:", body_pos, "\nPOS OF SCREEN CENTRE:", screen_centre_pos, "\nDISTANCE:", distance)
+
+        self.px = distance[0] * A.player_zoom - A.player_view_pos_x
+        self.py = distance[1] * A.player_zoom - A.player_view_pos_y
 
     def display(self):
         if not self.merged:
             self.updatePixelValues()
-            pygame.draw.circle(A.game_specs.screen, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
+            pygame.draw.circle(A.game_specs.display, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
 
 
 class PhysicsSim:

@@ -59,15 +59,11 @@ def updateMovementParams(keys, A):
 
 def updateCurrentLevel(keys, levelLoader):
     if keys[pygame.K_PERIOD]:
-        print(levelLoader.currentLevelIndex + 1, len(levelLoader.levels))
         if levelLoader.currentLevelIndex + 1 < len(levelLoader.levels):
             levelLoader.load_level_index(levelLoader.currentLevelIndex + 1, SAVE_LEVELS)
-            print("NEXT LEVEL LOADED")
     elif keys[pygame.K_COMMA]:
-        print(levelLoader.currentLevelIndex + 1, len(levelLoader.levels))
         if levelLoader.currentLevelIndex - 1 >= 0:
             levelLoader.load_level_index(levelLoader.currentLevelIndex - 1, SAVE_LEVELS)
-            print("PREVIOUS LEVEL LOADED")
     return levelLoader.currentLevelPhysSim
 
 
@@ -140,12 +136,15 @@ motion_gestures = {
 ################################################  GAME SETUP  ##########################################################
 ########################################################################################################################
 
+BACKGROUND_COLOR = (0, 0, 0)
+COLOUR_KEY = (0, 0, 0)
+
 
 class GameSpecs:
     def __init__(self):
         pygame.init()
 
-        self.SIZE = pygame.display.get_desktop_sizes()[0][0] - 50, pygame.display.get_desktop_sizes()[0][1] - 150
+        self.SIZE = pygame.display.get_desktop_sizes()[0][0] - 25, pygame.display.get_desktop_sizes()[0][1] - 75
 
         pygame.display.set_caption("SVGC 2024 - Stars")
         self.screen = pygame.display.set_mode(self.SIZE)
