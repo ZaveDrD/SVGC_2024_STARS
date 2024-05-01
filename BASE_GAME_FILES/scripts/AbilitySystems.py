@@ -51,10 +51,12 @@ class AbilityFunctions:
 
                 bodyPos = [planetaryBody.px, planetaryBody.py]
 
-                print("ATTEMPTING TO GRABBING BODY AT: " + str(landmarkCoord[0]), str(landmarkCoord[1]))
+                # print("ATTEMPTING TO GRABBING BODY AT: " + str(landmarkCoord[0]), str(landmarkCoord[1]))
 
                 if abs(math.dist(landmarkCoord, bodyPos)) <= planetaryBody.radius * A.player_zoom:
-                    planetaryBody.set_pos([landmarkCoord[0], landmarkCoord[1]])
+                    planetaryBody.set_pos_px([landmarkCoord[0], landmarkCoord[1]])
+                    A.pygame.draw.line(A.game_specs.display, [0, 0, 255], landmarkCoord, bodyPos)
+
                     return True
 
     @staticmethod
@@ -70,8 +72,9 @@ class AbilityFunctions:
                 landmarkCoord = [(summoningHand[9][1] + summoningHand[12][1]) / 2,
                                  (summoningHand[9][2] + summoningHand[12][2]) / 2]
 
+                x, y = P_SIM.CelestialBody.conv_px_x(landmarkCoord[0], landmarkCoord[1])
                 body = P_SIM.CelestialBody([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)],
-                                           10e14, [landmarkCoord[0], landmarkCoord[1]])
+                                           10e13, [x, y])
                 phys_sim.add_object([body])
 
                 return True

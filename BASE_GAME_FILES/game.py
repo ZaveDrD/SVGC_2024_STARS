@@ -56,7 +56,11 @@ class Game:
             keys = A.pygame.key.get_pressed()
 
             A.updateMovementParams(keys, A)
-            self.phys_sim = A.updateCurrentLevel(keys, self.level_loader)
+            changeInLevel, self.phys_sim = A.updateCurrentLevel(keys, self.level_loader)
+
+            if changeInLevel:  # RESETS ABILITIES (COULD BE USED TO CHEAT OUT COOLDOWNS BUT EH)
+                for ability in Abilities.abilities:
+                    ability.current_cooldown = 0
 
             for hand in HT_SIM.convertCamHandsToScreenSpaceHands(self.hands):  # MAKE INTO STARS LATER
                 for lm in hand:
@@ -67,10 +71,13 @@ class Game:
             #     if len(gesturingHands) > 0:
             #         print(gesture, "Being Did'd by hands:", gesturingHands)
 
+            self.phys_sim.applyForces(self.phys_sim.celestial_bodies)
+
             for ability in Abilities.abilities:
                 ability.checkForAbilityTrigger(game_time_change_increment)
 
-            self.phys_sim.applyForces(self.phys_sim.celestial_bodies)
+            # screen_centre_pos = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]
+            # A.pygame.draw.circle(A.game_specs.display, [0, 0, 255], screen_centre_pos, 5)
 
             A.game_specs.screen.blit(pygame.transform.scale(A.game_specs.display, A.game_specs.screen.get_size()),
                                      (0, 0))

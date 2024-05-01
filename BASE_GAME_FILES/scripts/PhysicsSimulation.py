@@ -33,9 +33,10 @@ class CelestialBody:
         self.radius = None
         self.calc_radius()
 
-    def set_pos(self, pos: list[float]):
-        self.x = math.floor(pos[0]) + A.player_view_pos_x
-        self.y = math.floor(pos[1]) + A.player_view_pos_y
+    def set_pos_px(self, pos: list[float]):
+        self.x, self.y = self.conv_px_x(math.ceil(pos[0]), math.ceil(pos[1]))
+
+        self.display()
 
     def calc_radius(self):
         self.radius = math.sqrt((self.mass / A.SCALE_MASS_EQUIVALENCE) / math.pi)
@@ -58,6 +59,36 @@ class CelestialBody:
 
         self.vx += self.ax
         self.vy += self.ay
+
+    @staticmethod
+    def conv_x_px(x, y) -> tuple:
+        body_pos = [int(x), int(y)]
+
+        screenCentreOffset = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]
+
+        screen_centre_pos = [(screenCentreOffset[0] + A.player_view_pos_x),
+                             (screenCentreOffset[1] + A.player_view_pos_y)]
+
+        distance = [body_pos[0] - screen_centre_pos[0], body_pos[1] - screen_centre_pos[1]]
+
+        px = A.player_zoom * distance[0] + screenCentreOffset[0]
+        py = A.player_zoom * distance[1] + screenCentreOffset[1]
+
+        # print("CONV X -> PX:\nx:", x, ":", px, "\ny:", y, ":", py)
+
+        return px, py
+
+    @staticmethod
+    def conv_px_x(px, py) -> tuple:
+        screenCentreOffset = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]
+
+        screen_centre_pos = [(screenCentreOffset[0] + A.player_view_pos_x),
+                             (screenCentreOffset[1] + A.player_view_pos_y)]
+
+        x = (px + A.player_zoom * (screen_centre_pos[0]) - screenCentreOffset[0]) / A.player_zoom
+        y = (py + A.player_zoom * (screen_centre_pos[1]) - screenCentreOffset[1]) / A.player_zoom
+
+        return x, y
 
     def calc_angle(self, object):
         difX, difY = object.x - self.x, object.y - self.y
@@ -94,23 +125,15 @@ class CelestialBody:
                 self.merged = True
                 object.calc_radius()
 
-    def updatePixelValues(self):
-        body_pos = [int(self.x), int(self.y)]
-        screen_centre_pos = [(A.game_specs.SIZE[0] / 4 + A.player_view_pos_x), (A.game_specs.SIZE[1] / 4 + A.player_view_pos_y)]
-        distance = [body_pos[0] - screen_centre_pos[0], body_pos[1] - screen_centre_pos[1]]
-
-        self.px = body_pos[0] + distance[0] * (A.player_zoom - 1) - A.player_view_pos_x
-        self.py = body_pos[1] + distance[1] * (A.player_zoom - 1) - A.player_view_pos_y
-
     def display(self):
         if not self.merged:
-            self.updatePixelValues()
+            (self.px, self.py) = self.conv_x_px(self.x, self.y)
             pygame.draw.circle(A.game_specs.display, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
 
 
 class PhysicsSim:
     def __init__(self, celestial_objects: list[CelestialBody]):
-        self.celestial_bodies = celestial_objects
+        self.celestial_bodies: list[CelestialBody] = celestial_objects
 
     def add_object(self, celestial_objects: list[CelestialBody]):
         for obj in celestial_objects:

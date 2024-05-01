@@ -51,20 +51,23 @@ def updateMovementParams(keys, A):
     if keys[pygame.K_LEFTBRACKET]:
         A.time_change_mult -= TIME_CHANGE_MULT_CHANGE_RATE
 
-    if A.time_change_mult == 0:
-        A.ticks_btw_calculations = 0.01
+    if A.time_change_mult <= 0:
+        A.ticks_btw_calculations = 0
     else:
         A.ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (1 / A.time_change_mult) / TPS
 
 
-def updateCurrentLevel(keys, levelLoader):
+def updateCurrentLevel(keys, levelLoader) -> tuple:
+    hasChanged = False
     if keys[pygame.K_PERIOD]:
         if levelLoader.currentLevelIndex + 1 < len(levelLoader.levels):
             levelLoader.load_level_index(levelLoader.currentLevelIndex + 1, SAVE_LEVELS)
+            hasChanged = True
     elif keys[pygame.K_COMMA]:
         if levelLoader.currentLevelIndex - 1 >= 0:
             levelLoader.load_level_index(levelLoader.currentLevelIndex - 1, SAVE_LEVELS)
-    return levelLoader.currentLevelPhysSim
+            hasChanged = True
+    return hasChanged, levelLoader.currentLevelPhysSim
 
 
 ########################################################################################################################

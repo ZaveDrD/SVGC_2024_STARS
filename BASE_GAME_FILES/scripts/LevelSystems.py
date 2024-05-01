@@ -22,7 +22,9 @@ class Level:
             self.levelName = self.levelSaveState.levelName
             self.isMenu = self.levelSaveState.isMenu
             self.usePhysics = self.levelSaveState.usePhysics
-            self.bodies = self.levelSaveState.bodies
+            self.initial_bodies = self.levelSaveState.initial_bodies
+            self.bodies = copy.deepcopy(self.levelSaveState.initial_bodies)
+            self.actorParams = copy.deepcopy(self.levelSaveState.actorParams)
 
     def load_actor_level_data(self):
         A.player_view_pos_x, A.player_view_pos_y, A.player_zoom = self.actorParams[0], self.actorParams[1], self.actorParams[2]
@@ -39,7 +41,7 @@ class LevelLoader:
 
     def saveCurrentLevelState(self):
         self.currentLevel.initial_bodies = copy.deepcopy(self.currentLevel.bodies)
-        self.currentLevel.actorParams = [A.player_view_pos_x, A.player_view_pos_y, A.player_zoom, A.time_change_mult, A.sim_time, A.game_time]
+        self.currentLevel.actorParams = copy.deepcopy([A.player_view_pos_x, A.player_view_pos_y, A.player_zoom, A.time_change_mult, A.sim_time, A.game_time])
         self.currentLevel.levelSaveState = self.currentLevel
 
     def reset_level_data(self):
@@ -54,14 +56,13 @@ class LevelLoader:
 
         self.currentLevel = self.levels[levelIndex]
         self.currentLevelIndex = levelIndex
+        self.reset_level_data()
 
         if self.currentLevel.levelSaveState is not None:
             self.currentLevel.loadSavedLevelState()
 
         if len(self.currentLevel.actorParams) > 0:
             self.currentLevel.load_actor_level_data()
-
-        self.reset_level_data()
 
         if self.currentLevel.usePhysics: self.currentLevelPhysSim = PhysicsSimulation.PhysicsSim(self.currentLevel.bodies)
 
