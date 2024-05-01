@@ -212,6 +212,4 @@ class PhysicsSim:
 
         x, y = body.predict_pos([x, y], [vx, vy])
 
-        print("INPUT:", pos, v, "\nOUTPUT:", [x, y], [vx, vy], "\n")
-
         return x, y, vx, vy

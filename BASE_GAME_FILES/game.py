@@ -72,8 +72,9 @@ class Game:
             #         print(gesture, "Being Did'd by hands:", gesturingHands)
 
             self.phys_sim.applyForces(self.phys_sim.celestial_bodies)
+
             self.level_loader.currentLevel.playerBody.updatePhys(self.phys_sim)
-            self.level_loader.currentLevel.playerBody.drawPath(prediction_length=50)
+            self.level_loader.currentLevel.playerBody.drawPath(prediction_length=75)
 
             for ability in Abilities.abilities:
                 ability.checkForAbilityTrigger(game_time_change_increment)
