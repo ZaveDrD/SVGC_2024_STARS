@@ -72,11 +72,13 @@ class Game:
             #         print(gesture, "Being Did'd by hands:", gesturingHands)
 
             self.phys_sim.applyForces(self.phys_sim.celestial_bodies)
+            self.level_loader.currentLevel.playerBody.updatePhys(self.phys_sim)
+            self.level_loader.currentLevel.playerBody.drawPath(prediction_length=50)
 
             for ability in Abilities.abilities:
                 ability.checkForAbilityTrigger(game_time_change_increment)
 
-            # screen_centre_pos = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]
+            # screen_centre_pos = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]  # shows the center of the screen
             # A.pygame.draw.circle(A.game_specs.display, [0, 0, 255], screen_centre_pos, 5)
 
             A.game_specs.screen.blit(pygame.transform.scale(A.game_specs.display, A.game_specs.screen.get_size()),

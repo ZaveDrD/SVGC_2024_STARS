@@ -72,7 +72,7 @@ class AbilityFunctions:
                 landmarkCoord = [(summoningHand[9][1] + summoningHand[12][1]) / 2,
                                  (summoningHand[9][2] + summoningHand[12][2]) / 2]
 
-                x, y = P_SIM.CelestialBody.conv_px_x(landmarkCoord[0], landmarkCoord[1])
+                x, y = P_SIM.CelestialBody.conv_px_to_x(landmarkCoord[0], landmarkCoord[1])
                 body = P_SIM.CelestialBody([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)],
                                            10e13, [x, y])
                 phys_sim.add_object([body])

@@ -34,7 +34,7 @@ class CelestialBody:
         self.calc_radius()
 
     def set_pos_px(self, pos: list[float]):
-        self.x, self.y = self.conv_px_x(math.ceil(pos[0]), math.ceil(pos[1]))
+        self.x, self.y = self.conv_px_to_x(math.ceil(pos[0]), math.ceil(pos[1]))
 
         self.display()
 
@@ -44,6 +44,12 @@ class CelestialBody:
     def calc_pos(self):
         self.x += self.vx
         self.y += self.vy
+
+    def predict_pos(self, pos, v) -> tuple:
+        x, y, vx, vy = pos[0], pos[1], v[0], v[1]
+        x += vx
+        y += vy
+        return x, y
 
     def calc_velocity(self, object):
         angle = self.calc_angle(object)
@@ -60,8 +66,28 @@ class CelestialBody:
         self.vx += self.ax
         self.vy += self.ay
 
+    def predict_velocity(self, store_force, a, v, object) -> tuple:
+        vx, vy = v[0], v[1]
+        ax, ay = a[0], a[1]
+
+        angle = self.calc_angle(object)
+        force = self.predict_force(object)
+        fx = force * math.cos(angle)
+        fy = force * math.sin(angle)
+
+        store_force[0] += fx
+        store_force[1] += fy
+
+        ax = fx / self.mass
+        ay = fy / self.mass
+
+        vx += ax
+        vy += ay
+
+        return vx, vy
+
     @staticmethod
-    def conv_x_px(x, y) -> tuple:
+    def conv_x_to_px(x, y) -> tuple:
         body_pos = [int(x), int(y)]
 
         screenCentreOffset = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]
@@ -79,7 +105,7 @@ class CelestialBody:
         return px, py
 
     @staticmethod
-    def conv_px_x(px, py) -> tuple:
+    def conv_px_to_x(px, py) -> tuple:
         screenCentreOffset = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]
 
         screen_centre_pos = [(screenCentreOffset[0] + A.player_view_pos_x),
@@ -101,6 +127,10 @@ class CelestialBody:
     def calc_force(self, object):
         distance = math.sqrt((self.x - object.x) ** 2 + (self.y - object.y) ** 2)
         return A.GRAVITATIONAL_CONSTANT * (self.mass * object.mass) / (distance ** 2) / A.ticks_btw_calculations
+
+    def predict_force(self, object):
+        distance = math.sqrt((self.x - object.x) ** 2 + (self.y - object.y) ** 2)
+        return A.GRAVITATIONAL_CONSTANT * (self.mass * object.mass) / (distance ** 2)
 
     def calc_collision_data(self, object):
         difX, difY = object.x - self.x, object.y - self.y
@@ -127,7 +157,7 @@ class CelestialBody:
 
     def display(self):
         if not self.merged:
-            (self.px, self.py) = self.conv_x_px(self.x, self.y)
+            (self.px, self.py) = self.conv_x_to_px(self.x, self.y)
             pygame.draw.circle(A.game_specs.display, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
 
 
@@ -166,3 +196,22 @@ class PhysicsSim:
 
         for i in objects:
             i.display()
+
+    def predict_path(self, body: CelestialBody, v, pos) -> tuple:
+        ax = 0
+        ay = 0
+        store_force_x = 0
+        store_force_y = 0
+
+        vx, vy = v[0], v[1]
+        x, y = pos[0], pos[1]
+
+        for other_body in self.celestial_bodies:
+            if other_body != body and not body.merged and not other_body.merged:
+                vx, vy = body.predict_velocity([store_force_x, store_force_y], [ax, ay], [vx, vy], other_body)
+
+        x, y = body.predict_pos([x, y], [vx, vy])
+
+        print("INPUT:", pos, v, "\nOUTPUT:", [x, y], [vx, vy], "\n")
+
+        return x, y, vx, vy

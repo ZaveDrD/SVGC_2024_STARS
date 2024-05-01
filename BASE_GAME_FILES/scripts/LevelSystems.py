@@ -2,14 +2,20 @@ import copy
 
 import BASE_GAME_FILES.scripts.PhysicsSimulation as PhysicsSimulation
 import BASE_GAME_FILES.scripts.Actor as A
+import BASE_GAME_FILES.scripts.Player as P
 
 
 class Level:
-    def __init__(self, levelName, bodies, isMenu=False, usePhysics=True):
+    def __init__(self, levelName, bodies, playerStartPos, endGoalPos, isMenu=False, usePhysics=True):
         self.levelName = levelName
         self.isMenu = isMenu
         self.usePhysics = usePhysics
         self.initial_bodies = bodies
+
+        self.playerStartPos = playerStartPos
+        self.endGoalPos = endGoalPos
+
+        self.playerBody = None
 
         self.bodies = copy.deepcopy(self.initial_bodies)
 
@@ -24,6 +30,7 @@ class Level:
             self.usePhysics = self.levelSaveState.usePhysics
             self.initial_bodies = self.levelSaveState.initial_bodies
             self.bodies = copy.deepcopy(self.levelSaveState.initial_bodies)
+            self.playerBody = self.levelSaveState.playerBody
             self.actorParams = copy.deepcopy(self.levelSaveState.actorParams)
 
     def load_actor_level_data(self):
@@ -53,6 +60,7 @@ class LevelLoader:
             self.saveCurrentLevelState()
         else:
             self.currentLevel.bodies = copy.deepcopy(self.currentLevel.initial_bodies)
+            self.currentLevel.playerBody = None
 
         self.currentLevel = self.levels[levelIndex]
         self.currentLevelIndex = levelIndex
@@ -64,7 +72,12 @@ class LevelLoader:
         if len(self.currentLevel.actorParams) > 0:
             self.currentLevel.load_actor_level_data()
 
+        if self.currentLevel.playerBody is None:
+            self.currentLevel.playerBody = P.Player(self.currentLevelPhysSim, self.currentLevel.endGoalPos, [0, 0, 255], 10e13, self.currentLevel.playerStartPos)
+            self.currentLevel.bodies.append(self.currentLevel.playerBody)
+
         if self.currentLevel.usePhysics: self.currentLevelPhysSim = PhysicsSimulation.PhysicsSim(self.currentLevel.bodies)
+        self.currentLevel.playerBody.updatePhys(self.currentLevelPhysSim)
 
         A.selected_level = levelIndex
 

@@ -92,7 +92,7 @@ game_time = 0
 ########################################################################################################################
 
 #  VARIABLES
-selected_level = 1
+selected_level = 0
 
 atexit.register(lambda: [pygame.quit(), sys.exit()])
 
