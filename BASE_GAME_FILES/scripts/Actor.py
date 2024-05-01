@@ -23,7 +23,7 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 #  CONSTANTS
 PLAYER_MOVE_SPEED = 7.5
 ZOOM_MULT_INC = 0.01
-PLAYER_MIN_ZOOM = 10 ** -10
+PLAYER_MIN_ZOOM = 10e-10
 SAVE_LEVELS = True
 
 #  VARIABLES
@@ -33,13 +33,13 @@ player_zoom = 1
 
 def updateMovementParams(keys, A):
     if keys[pygame.K_UP]:
-        A.player_view_pos_y -= PLAYER_MOVE_SPEED
+        A.player_view_pos_y -= PLAYER_MOVE_SPEED / A.player_zoom
     if keys[pygame.K_DOWN]:
-        A.player_view_pos_y += PLAYER_MOVE_SPEED
+        A.player_view_pos_y += PLAYER_MOVE_SPEED / A.player_zoom
     if keys[pygame.K_LEFT]:
-        A.player_view_pos_x -= PLAYER_MOVE_SPEED
+        A.player_view_pos_x -= PLAYER_MOVE_SPEED / A.player_zoom
     if keys[pygame.K_RIGHT]:
-        A.player_view_pos_x += PLAYER_MOVE_SPEED
+        A.player_view_pos_x += PLAYER_MOVE_SPEED / A.player_zoom
 
     if keys[pygame.K_EQUALS]:
         A.player_zoom += ZOOM_MULT_INC
