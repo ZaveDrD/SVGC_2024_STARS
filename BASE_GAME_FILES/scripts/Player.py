@@ -2,12 +2,16 @@ import BASE_GAME_FILES.scripts.PhysicsSimulation as PhysSim
 import BASE_GAME_FILES.scripts.Actor as A
 
 
-class Player(PhysSim.CelestialBody):
-    def __init__(self, phys_sim: PhysSim.PhysicsSim, endPos, color, mass, pos: list[float], *args):
-        super().__init__(color, mass, pos, *args)
-        self.endPosX: float = endPos[0]
-        self.endPosY: float = endPos[1]
+class Player(PhysSim.Spacecraft):
+    def __init__(self, phys_sim: PhysSim.PhysicsSim, endGoal: PhysSim.CelestialBody, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
+        super().__init__(color, mass, pos, velocity, acceleration, start_force, static, interaction)
+        self.interaction = False
+        self.static = False
         self.phys_sim = phys_sim
+        self.endGoal = endGoal
+
+        self.alive = True
 
     def updatePhys(self, phys_sim):
         self.phys_sim = phys_sim
@@ -26,9 +30,11 @@ class Player(PhysSim.CelestialBody):
             A.pygame.draw.line(A.game_specs.display, [0, 255, 0], [px, py], [px0, py0])
 
     def checkForLevelEnd(self):
-        print("IDK")
+        if self.merged and self.merged_to == self.endGoal:
+            print("WIN")
 
     def checkForPlayerDeath(self):
-        if self.merged:
+        if self.merged and self.merged_to != self.endGoal:
+            self.alive = False
             print("DEAD")
 

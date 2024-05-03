@@ -41,6 +41,7 @@ class AbilityFunctions:
     def GrabPlanetAbility(gesturing_hands, hands, phys_sim) -> bool:
         for planetaryBody in phys_sim.celestial_bodies:  # PINCH DETECTION TO GRAB PLANETS
             if planetaryBody.merged: continue
+            if not planetaryBody.interaction: continue
             for hand in gesturing_hands:
                 if hand is None: break
                 if hand >= len(hands): break
@@ -63,6 +64,7 @@ class AbilityFunctions:
     def SummonPlanetAbility(gesturing_hands, hands, phys_sim) -> bool:
         for planetaryBody in phys_sim.celestial_bodies:  # SUMMON PLANETS
             if planetaryBody.merged: continue
+            if not planetaryBody.interaction: continue
             for hand in gesturing_hands:
                 if hand is None: break
                 if hand >= len(hands): break
@@ -73,7 +75,7 @@ class AbilityFunctions:
                                  (summoningHand[9][2] + summoningHand[12][2]) / 2]
 
                 x, y = P_SIM.CelestialBody.conv_px_to_x(landmarkCoord[0], landmarkCoord[1])
-                body = P_SIM.CelestialBody([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)],
+                body = P_SIM.Planet([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)],
                                            10e13, [x, y])
                 phys_sim.add_object([body])
 

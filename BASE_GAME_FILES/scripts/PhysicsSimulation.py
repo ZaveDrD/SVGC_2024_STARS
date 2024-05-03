@@ -5,16 +5,21 @@ import BASE_GAME_FILES.scripts.Actor as A
 
 
 class CelestialBody:
-    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0], \
-                 start_force: list[int] = [0, 0],  *args):
+    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True, *args):
         # Aesthetic Parameters
         self.color: list[int] = color
 
         # Physics Parameters (Const)
         self.mass: float = mass
+        self.collision = True
+        self.static = static
+        self.interaction = interaction
 
         # Physics Parameters (Varying)
         self.merged = False
+        self.merged_to = None
+
         self.store_force_x = start_force[0]
         self.store_force_y = start_force[1]
 
@@ -35,7 +40,10 @@ class CelestialBody:
 
     def set_pos_px(self, pos: list[float]):
         self.x, self.y = self.conv_px_to_x(math.ceil(pos[0]), math.ceil(pos[1]))
+        self.display()
 
+    def set_pos(self, pos: list[float]):
+        self.x, self.y = pos[0], pos[1]
         self.display()
 
     def calc_radius(self):
@@ -146,6 +154,8 @@ class CelestialBody:
                 self.vy = momentumY / self.mass
 
                 object.merged = True
+                object.merged_to = self
+
                 self.calc_radius()
             else:
                 object.mass += self.mass
@@ -153,12 +163,33 @@ class CelestialBody:
                 object.vy = momentumY / object.mass
 
                 self.merged = True
+                self.merged_to = object
+
                 object.calc_radius()
 
     def display(self):
         if not self.merged:
             (self.px, self.py) = self.conv_x_to_px(self.x, self.y)
             pygame.draw.circle(A.game_specs.display, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
+
+
+class Planet(CelestialBody):
+    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
+        super().__init__(color, mass, pos, velocity, acceleration, start_force, static, interaction)
+
+
+class Spacecraft(CelestialBody):
+    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
+        super().__init__(color, mass, pos, velocity, acceleration, start_force, static, interaction)
+
+
+class GravitationField(CelestialBody):
+    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
+        super().__init__(color, mass, pos, velocity, acceleration, start_force, static, interaction)
+        self.collision = False
 
 
 class PhysicsSim:
@@ -177,22 +208,24 @@ class PhysicsSim:
     def applyForces(objects: list[CelestialBody]):
         for x in objects:
             for y in objects:
-                if not x.merged and not y.merged and x != y:
+                if not x.merged and not y.merged and x != y and x.collision and y.collision:
                     x.calc_collision_data(y)
 
         for x in objects:
-            x.ax = 0
-            x.ay = 0
-            x.store_force_x = 0
-            x.store_force_y = 0
+            if not x.static:
+                x.ax = 0
+                x.ay = 0
+                x.store_force_x = 0
+                x.store_force_y = 0
 
         for x in objects:
             for y in objects:
-                if x != y and not x.merged and not y.merged:
+                if x != y and not x.merged and not y.merged and not x.static and not y.static:
                     x.calc_velocity(y)
 
         for x in objects:
-            x.calc_pos()
+            if not x.static:
+                x.calc_pos()
 
         for i in objects:
             i.display()

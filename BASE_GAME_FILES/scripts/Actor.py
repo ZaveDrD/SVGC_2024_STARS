@@ -24,7 +24,7 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 PLAYER_MOVE_SPEED = 7.5
 ZOOM_MULT_INC = 0.01
 PLAYER_MIN_ZOOM = 10e-10
-SAVE_LEVELS = False
+SAVE_LEVELS = True
 
 #  VARIABLES
 player_view_pos_x, player_view_pos_y = 0, 0
