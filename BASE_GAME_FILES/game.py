@@ -53,7 +53,7 @@ class Game:
             self.backgroundAesthetics.render_background_objects()
 
             mousePX, mousePY = A.pygame.mouse.get_pos()
-            mouseX, mouseY = utils.ScaleCoordinateToScreenSize([mousePY, mousePY])
+            mouseX, mouseY = utils.ScaleCoordinateToScreenSize([mousePX, mousePY])
             A.mouse.set_mouse_pos(mouseX, mouseY)
 
             game_time_change_increment = (A.TIME_CHANGE_PER_SECOND / A.TPS) * A.time_change_mult
@@ -100,10 +100,10 @@ class Game:
             screen_centre_pos = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]  # shows the center of the screen
             # A.pygame.draw.circle(A.game_specs.display, [0, 0, 255], screen_centre_pos, 5)
 
-            # Menus.TestMenu.open_menu()
-            # Menus.TestMenu.updateMenu()
+            Menus.TestMenu.open_menu()
+            Menus.TestMenu.updateMenu()
 
-            self.postProcessing.RenderEffects()
+            if A.USE_POST_PROCESSING: self.postProcessing.RenderEffects()
 
             A.game_specs.screen.blit(pygame.transform.scale(A.game_specs.display, A.game_specs.screen.get_size()),
                                      (0, 0))

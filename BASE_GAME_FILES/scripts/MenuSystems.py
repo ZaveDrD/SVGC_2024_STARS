@@ -1,5 +1,4 @@
 import math
-
 import pygame
 
 import BASE_GAME_FILES.scripts.Actor as A
