@@ -1,6 +1,7 @@
 import math
 import pygame
 import random
+from PygameShader import *
 
 import BASE_GAME_FILES.scripts.Actor as A
 
@@ -72,6 +73,21 @@ class BackgroundRenderer:
     def render_background(self):
         A.game_specs.display.fill(self.background_color)
 
-    def render_objects(self):
+    def render_background_objects(self):
         for obj in self.objects:
             obj.display()
+
+
+class PostProcessing_Renderer:
+    def __init__(self, mainSurf: pygame.surface, effects: list[str]):
+        self.effect_list = effects
+        self.mainSurf = mainSurf
+
+    @staticmethod
+    def renderEffectToSurface(surface, effects: list[str], rep='SURFACE'):
+        for effect in effects:
+            effect = effect.replace(rep, "surface")
+            eval(effect)  # IK ITS BAD IM TIRED
+
+    def RenderEffects(self):
+        self.renderEffectToSurface(self.mainSurf, self.effect_list)

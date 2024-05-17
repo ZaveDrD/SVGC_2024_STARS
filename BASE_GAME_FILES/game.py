@@ -3,6 +3,7 @@ import sys
 import math
 import threading
 import pygame
+from PygameShader import *
 
 import BASE_GAME_FILES.scripts.PhysicsSimulation as P_SIM
 import BASE_GAME_FILES.scripts.GestureTrackingSim as GT_SIM
@@ -10,7 +11,7 @@ import BASE_GAME_FILES.scripts.HandTrackingSim as HT_SIM
 import BASE_GAME_FILES.scripts.LevelSystems as L_SYS
 import BASE_GAME_FILES.scripts.AestheticSystems as A_SYS
 import BASE_GAME_FILES.scripts.MenuSystems as M_SYS
-import BASE_GAME_FILES  .data.MenuData as Menus
+import BASE_GAME_FILES.data.MenuData as Menus
 import BASE_GAME_FILES.scripts.AbilitySystems as Ab_SYS
 import BASE_GAME_FILES.scripts.Utils as utils
 
@@ -32,7 +33,8 @@ class Game:
 
         background_objects = A_SYS.generateBackgroundStars(2000, color=[255, 255, 255])
 
-        self.aesthetics: A_SYS.BackgroundRenderer = A_SYS.BackgroundRenderer(background_objects, A.BACKGROUND_COLOR)
+        self.backgroundAesthetics: A_SYS.BackgroundRenderer = A_SYS.BackgroundRenderer(background_objects, A.BACKGROUND_COLOR)
+        self.postProcessing: A_SYS.PostProcessing_Renderer = A_SYS.PostProcessing_Renderer(A.game_specs.display, A.post_processing_effects)
         self.phys_sim = None
 
         self.assets = {
@@ -47,8 +49,8 @@ class Game:
         self.level_loader.load_level_index(A.selected_level)  # loads initial level
 
         while True:
-            self.aesthetics.render_background()
-            self.aesthetics.render_objects()
+            self.backgroundAesthetics.render_background()
+            self.backgroundAesthetics.render_background_objects()
 
             mousePX, mousePY = A.pygame.mouse.get_pos()
             mouseX, mouseY = utils.ScaleCoordinateToScreenSize([mousePY, mousePY])
@@ -95,11 +97,13 @@ class Game:
             for ability in Abilities.abilities:
                 ability.checkForAbilityTrigger(game_time_change_increment)
 
-            # screen_centre_pos = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]  # shows the center of the screen
+            screen_centre_pos = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]  # shows the center of the screen
             # A.pygame.draw.circle(A.game_specs.display, [0, 0, 255], screen_centre_pos, 5)
 
-            Menus.TestMenu.open_menu()
-            Menus.TestMenu.updateMenu()
+            # Menus.TestMenu.open_menu()
+            # Menus.TestMenu.updateMenu()
+
+            self.postProcessing.RenderEffects()
 
             A.game_specs.screen.blit(pygame.transform.scale(A.game_specs.display, A.game_specs.screen.get_size()),
                                      (0, 0))
@@ -108,8 +112,8 @@ class Game:
             A.game_specs.clock.tick(A.TPS)
 
 
+A.game_specs = A.GameSpecs()
 game = Game()
 
-A.game_specs = A.GameSpecs()
 Abilities.abilities = Abilities.initialise_abilities(game)
 game.run()
