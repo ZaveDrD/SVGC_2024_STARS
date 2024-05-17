@@ -23,12 +23,12 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 #  CONSTANTS
 PLAYER_MOVE_SPEED = 7.5
 ZOOM_MULT_INC = 0.01
-PLAYER_MIN_ZOOM = 10e-10
-SAVE_LEVELS = True
+SAVE_LEVELS = False
 
 #  VARIABLES
 player_view_pos_x, player_view_pos_y = 0, 0
 player_zoom = 1
+player_zoom_max_min = [0.25, 5]
 
 
 def updateMovementParams(keys, A):
@@ -42,9 +42,9 @@ def updateMovementParams(keys, A):
         A.player_view_pos_x += PLAYER_MOVE_SPEED / A.player_zoom
 
     if keys[pygame.K_EQUALS]:
-        A.player_zoom += ZOOM_MULT_INC
+        A.player_zoom = A.player_zoom_max_min[1] if A.player_zoom + ZOOM_MULT_INC > A.player_zoom_max_min[1] else A.player_zoom + ZOOM_MULT_INC
     if keys[pygame.K_MINUS]:
-        A.player_zoom = PLAYER_MIN_ZOOM if A.player_zoom - ZOOM_MULT_INC < 0 else A.player_zoom - ZOOM_MULT_INC
+        A.player_zoom = A.player_zoom_max_min[0] if A.player_zoom - ZOOM_MULT_INC < A.player_zoom_max_min[0] else A.player_zoom - ZOOM_MULT_INC
 
     if keys[pygame.K_RIGHTBRACKET]:
         A.time_change_mult += TIME_CHANGE_MULT_CHANGE_RATE
@@ -141,6 +141,21 @@ motion_gestures = {
 
 BACKGROUND_COLOR = (0, 0, 0)
 COLOUR_KEY = (0, 0, 0)
+
+
+class Mouse:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def get_pos(self):
+        return self.x, self.y
+
+    def set_mouse_pos(self, x, y):
+        self.x, self.y = x, y
+
+
+mouse = Mouse(0, 0)
 
 
 class GameSpecs:

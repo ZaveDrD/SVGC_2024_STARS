@@ -17,8 +17,8 @@ level_1_bodies = GenRandBodies(200, color=[255, 255, 255])  # TESTNG PHYSICS SYS
 
 levels = [
     Level("Level0", [
-        PhysicsSimulation.Planet([255, 255, 255], 10e15, [0, 0], interaction=False),
-        PhysicsSimulation.Planet([255, 255, 255], 10e15, [1000, 0], interaction=False)
+        PhysicsSimulation.Planet([255, 255, 255], 10e15, [0, 0]),
+        PhysicsSimulation.Planet([255, 255, 255], 10e15, [1000, 0])
     ],
           playerStartPos=[500, 500],
           endGoalPos=[250, 250]

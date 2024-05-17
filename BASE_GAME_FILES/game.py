@@ -8,7 +8,10 @@ import BASE_GAME_FILES.scripts.PhysicsSimulation as P_SIM
 import BASE_GAME_FILES.scripts.GestureTrackingSim as GT_SIM
 import BASE_GAME_FILES.scripts.HandTrackingSim as HT_SIM
 import BASE_GAME_FILES.scripts.LevelSystems as L_SYS
-import BASE_GAME_FILES.scripts.AbilitySystems as A_SYS
+import BASE_GAME_FILES.scripts.AestheticSystems as A_SYS
+import BASE_GAME_FILES.scripts.MenuSystems as M_SYS
+import BASE_GAME_FILES  .data.MenuData as Menus
+import BASE_GAME_FILES.scripts.AbilitySystems as Ab_SYS
 import BASE_GAME_FILES.scripts.Utils as utils
 
 import BASE_GAME_FILES.data.Levels as Levels
@@ -26,6 +29,10 @@ class Game:
         self.gesture_sim = GT_SIM.GestureSim()
         self.hand_sim = HT_SIM.HandSim()
         self.level_loader = L_SYS.LevelLoader(Levels.levels, A.selected_level)
+
+        background_objects = A_SYS.generateBackgroundStars(2000, color=[255, 255, 255])
+
+        self.aesthetics: A_SYS.BackgroundRenderer = A_SYS.BackgroundRenderer(background_objects, A.BACKGROUND_COLOR)
         self.phys_sim = None
 
         self.assets = {
@@ -40,7 +47,12 @@ class Game:
         self.level_loader.load_level_index(A.selected_level)  # loads initial level
 
         while True:
-            A.game_specs.display.fill(A.BACKGROUND_COLOR)
+            self.aesthetics.render_background()
+            self.aesthetics.render_objects()
+
+            mousePX, mousePY = A.pygame.mouse.get_pos()
+            mouseX, mouseY = utils.ScaleCoordinateToScreenSize([mousePY, mousePY])
+            A.mouse.set_mouse_pos(mouseX, mouseY)
 
             game_time_change_increment = (A.TIME_CHANGE_PER_SECOND / A.TPS) * A.time_change_mult
 
@@ -60,7 +72,7 @@ class Game:
 
             if changeInLevel:  # RESETS ABILITIES (COULD BE USED TO CHEAT OUT COOLDOWNS BUT EH)
                 for ability in Abilities.abilities:
-                    ability.current_cooldown = 0
+                    ability.current_cooldown = 0  # could save cooldowns as we change levels but i cbb
 
             for hand in HT_SIM.convertCamHandsToScreenSpaceHands(self.hands):  # MAKE INTO STARS LATER
                 for lm in hand:
@@ -86,8 +98,12 @@ class Game:
             # screen_centre_pos = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]  # shows the center of the screen
             # A.pygame.draw.circle(A.game_specs.display, [0, 0, 255], screen_centre_pos, 5)
 
+            Menus.TestMenu.open_menu()
+            Menus.TestMenu.updateMenu()
+
             A.game_specs.screen.blit(pygame.transform.scale(A.game_specs.display, A.game_specs.screen.get_size()),
                                      (0, 0))
+
             A.pygame.display.update()
             A.game_specs.clock.tick(A.TPS)
 
