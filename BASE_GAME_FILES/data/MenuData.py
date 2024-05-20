@@ -1,4 +1,5 @@
 import BASE_GAME_FILES.scripts.MenuSystems as M_SYS
+from BASE_GAME_FILES.scripts.Utils import Colour
 
 
 def i_am_clicked():
@@ -8,5 +9,5 @@ def i_am_clicked():
 
 
 TestMenu = M_SYS.Menu([
-    M_SYS.Rect_Button([25, 25], [100, 100], [255, 0, 0], i_am_clicked)
+    M_SYS.Toggle([100, 50], [200, 200], (Colour((255, 0, 0)), Colour((0, 255, 0))), (Colour((0, 0, 255)), Colour((0, 0, 255))), True),
 ])
