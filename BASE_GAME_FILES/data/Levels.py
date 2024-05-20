@@ -21,7 +21,7 @@ levels = [
         PhysicsSimulation.Planet([255, 255, 255], 10e15, [1000, 0])
     ],
           playerStartPos=[500, 500],
-          endGoalPos=[250, 250]
+          endGoalPos=[500, -500],
     ),
     Level("Level0", level_1_bodies, playerStartPos=[0, 0], endGoalPos=[250, 250])
 ]
