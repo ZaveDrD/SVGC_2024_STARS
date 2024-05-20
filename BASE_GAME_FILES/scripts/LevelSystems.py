@@ -54,7 +54,8 @@ class LevelLoader:
         self.currentLevel.actorParams = copy.deepcopy([A.player_view_pos_x, A.player_view_pos_y, A.player_zoom, A.time_change_mult, A.sim_time, A.game_time])
         self.currentLevel.levelSaveState = self.currentLevel
 
-    def reset_level_data(self):
+    @staticmethod
+    def reset_level_data():
         A.player_view_pos_x, A.player_view_pos_y, A.player_zoom = 0, 0, 1
         A.time_change_mult, A.sim_time, A.game_time = 1, 0, 0
 
@@ -64,6 +65,7 @@ class LevelLoader:
         else:
             self.currentLevel.bodies = copy.deepcopy(self.currentLevel.initial_bodies)
             self.currentLevel.playerBody = None
+            self.currentLevel.endGoal = None
 
         self.currentLevel = self.levels[levelIndex]
         self.currentLevelIndex = levelIndex

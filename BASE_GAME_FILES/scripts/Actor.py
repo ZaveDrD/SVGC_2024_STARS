@@ -23,7 +23,6 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 #  CONSTANTS
 PLAYER_MOVE_SPEED = 7.5
 ZOOM_MULT_INC = 0.01
-SAVE_LEVELS = False
 
 #  VARIABLES
 player_view_pos_x, player_view_pos_y = 0, 0
@@ -139,7 +138,7 @@ motion_gestures = {
 ################################################  AESTHETICS  ##########################################################
 ########################################################################################################################
 
-USE_POST_PROCESSING = False
+USE_POST_PROCESSING = True
 
 post_processing_effects = [
     #  USE 'SURFACE' IN PLACE OF WHERE 'A.game_specs.display' WOULD USUALLY BE
@@ -153,6 +152,8 @@ post_processing_effects = [
 
 BACKGROUND_COLOR = (0, 0, 0)
 COLOUR_KEY = (0, 0, 0)
+
+SAVE_LEVELS = False
 
 
 class Mouse:
@@ -184,4 +185,3 @@ class GameSpecs:
 
 
 game_specs: GameSpecs = None
-
