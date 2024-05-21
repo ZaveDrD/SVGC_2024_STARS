@@ -8,10 +8,10 @@ from typing import Callable
 #  Func:
 #   -> Each 'Menu' consists of individual 'elements'
 #   -> Elements include:
-#       - Buttons
-#       - Panels
-#       - Text
-#       - whatever else later on (ie. sliders, toggles, etc...)
+#       - Buttons   _/
+#       - Panels    _/
+#       - Text      _/
+#       - whatever else later on (ie. sliders  _/, toggles _/, etc...)
 
 
 class UI_Element:
