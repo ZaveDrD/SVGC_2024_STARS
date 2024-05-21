@@ -262,8 +262,8 @@ class Slider(UI_Element):
         self.size = size
 
         self.container = Rect_Button(self.size, pos, bgColour, self.updateX, roundness=[5, 5, 5, 5])
-        self.min = Text((pos[0] + 5, pos[1]), str(range_[0]), min(size)//2, (0, 0, 0), **textOptions)
-        self.max = Text((pos[0]+size[0]-min(size) - 5, pos[1]), str(range_[1]), min(size)//2, (0, 0, 0), **textOptions)
+        self.min = Text((pos[0] + 5, pos[1]), str(range_[0]), min(size)//2, colour, **textOptions)
+        self.max = Text((pos[0]+size[0]-min(size) - 5, pos[1]), str(range_[1]), min(size)//2, colour, **textOptions)
         self.slider = Rect_Button((min(size)*0.8, min(size)*1.1), (self.__posX(), pos[1]-1), self.color, self.updateX, roundness=[5, 5, 5, 5])
 
         self.container.needPressed = self.slider.needPressed = False
