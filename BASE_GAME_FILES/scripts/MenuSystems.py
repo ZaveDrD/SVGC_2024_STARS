@@ -15,6 +15,8 @@ from typing import Callable
 
 
 class UI_Element:
+    button = False
+
     #  Requires:
     #   -> screen_pos (px) : list[float], len = 2
     #   -> color (RGB), list[int], len = 3    #
@@ -27,7 +29,6 @@ class UI_Element:
         self.color = color
         self.outlineThickness = outlineThickness
         self.show = False
-        self.button = False
 
     def display(self):
         pass
@@ -49,6 +50,7 @@ class Rect_Panel(UI_Element):
 
     def display(self):
         if not self.show: return
+        self.bounds = pygame.Rect(self.x, self.y, self.width, self.height)
         pygame.draw.rect(A.game_specs.display, self.color,
                          self.bounds, width=self.outlineThickness,
                          border_top_left_radius=self.roundness[0], border_top_right_radius=self.roundness[1],
@@ -103,20 +105,19 @@ class Circular_Panel(UI_Element):
 
 
 class Button:
-    def __init__(self, function: Callable[[], None], buttonObj: UI_Element, *args):
+    button = True
+
+    def __init__(self, function: Callable[[], None], buttonObj: UI_Element, needPressed=True, *args):
         self.pressed = False
+        self.needPressed = needPressed
         self.function = function
         self.buttonObj = buttonObj
-        self.button = True
 
     def press(self):
-        print("PRESSING --- ABT TO RUN FUNCTION")
-        print(self.function)
         self.function()
 
     def checkForInputs(self):
-        if self.buttonObj.is_clicked() and not self.pressed:
-            print("PRESSED")
+        if self.buttonObj.is_clicked() and not (self.needPressed and self.pressed):
             self.press()
         self.pressed = pygame.mouse.get_pressed()[0]
 
@@ -134,6 +135,8 @@ class Circular_Button(Circular_Panel, Button):
 
 
 class Toggle:
+    button = True
+
     def __init__(self, size: list[int], pos: list[int], toggleColour: tuple[Colour], bgColour: tuple[Colour],
                  default: bool = True, function: Callable[[], None] | None = None):
         """
@@ -163,7 +166,6 @@ class Toggle:
         self.__rect.show = True
         self.__circle.show = True
         self.function = function or (lambda: None)
-        self.button = True
         self.buttonObj = self.__rect.buttonObj
 
     def clicked(self):
@@ -189,6 +191,113 @@ class Toggle:
 
     def checkForInputs(self):
         return self.__rect.checkForInputs()
+
+
+class Text(UI_Element):
+    button = False
+    def __init__(self, pos: tuple[int], text: str, size: int = 12, colour: Colour | None = None, font: str = "Arial", *,
+                 bold: bool = False, italic: bool = False, position: str = "top-left"):
+        self.text = text
+        self.colour = colour or Colour((0, 0, 0))
+        self.bold = bold
+        self.italic = italic
+        self.pos = pos
+        self.size = size
+        self.position = position
+        self.font = font
+
+
+    def display(self):
+        surfaces = []
+        totalHeight = 0
+        maxWidth = 0
+        font = A.pygame.font.SysFont(self.font, self.size, self.bold, self.italic)
+        for line in self.text.split('\n'):
+            textSurface = font.render(line, True, self.colour)
+            surfaces.append(textSurface)
+            totalHeight += textSurface.get_height()
+            maxWidth = max(maxWidth, textSurface.get_width())
+        combinedSurface = A.pygame.Surface((maxWidth, totalHeight), A.pygame.SRCALPHA)
+        yOffset = 0
+        for surface in surfaces:
+            combinedSurface.blit(surface, (0, yOffset))
+            yOffset += surface.get_height()
+
+        textRect = combinedSurface.get_rect()
+
+        if self.position == 'top-left':
+            textRect.topleft = self.pos
+        elif self.position == 'top-right':
+            textRect.topright = self.pos
+        elif self.position == 'center':
+            textRect.center = self.pos
+        elif self.position == 'mid-top':
+            textRect.midtop = self.pos
+        elif self.position == 'bottom-left':
+            textRect.bottomleft = self.pos
+        elif self.position == 'bottom-right':
+            textRect.bottomright = self.pos
+        elif self.position == 'mid-bottom':
+            textRect.midbottom = self.pos
+        elif self.position == 'mid-left':
+            textRect.midleft = self.pos
+        elif self.position == 'mid-right':
+            textRect.midright = self.pos
+
+        A.game_specs.display.blit(combinedSurface, textRect)
+
+
+class Slider(UI_Element):
+    button = True
+
+    def __init__(self, size: tuple[int, int], pos: tuple[int, int], colour: Colour,
+                 bgColour: Colour, range_: tuple[int, int], default: float, **textOptions) -> None:
+        super().__init__(pos, colour)
+        self.value = default
+        self.__range = range_
+        self.__sizeX = size[0]
+        self.__xStart = pos[0]
+        self.pos = pos
+        self.size = size
+
+        self.container = Rect_Button(self.size, pos, (255, 255, 255), self.updateX)
+        self.min = Text(pos, str(range_[0]), min(size)//2, (0, 0, 0), **textOptions)
+        self.max = Text((pos[0]+size[0]-min(size), pos[1]), str(range_[1]), min(size)//2, (0, 0, 0), **textOptions)
+        self.slider = Rect_Button((min(size)*0.8, min(size)*1.1), (self.__posX(), pos[1]), (0, 0, 0), self.updateX)
+
+        self.container.needPressed = self.slider.needPressed = False
+
+    def __posX(self):
+        # Normalise the slider to the size of the container
+        ratio = self.value / abs(self.__range[1] - self.__range[0])
+        xCoord = ratio * self.__sizeX + self.__xStart
+        return xCoord
+
+    def display(self):
+        if not self.show: return
+        self.container.show = self.min.show = self.max.show = self.slider.show = True
+        self.container.display()
+        self.min.display()
+        self.max.display()
+        self.slider.x = self.__posX()
+        self.slider.display()
+
+    def updateX(self):
+        mouseCoord = A.mouse.get_pos()
+        # Confirm the mouse is within the rectangle
+        if not (self.pos[0] + self.size[0] > mouseCoord[0] > self.pos[0]):
+            # Is not within the x-range of the container
+            return
+        elif not (self.pos[1] + self.size[1] > mouseCoord[1] > self.pos[1]):
+            # Is not within the y-range of the container
+            return
+        # Find the coordinate within the rectangle, then normalise to the range
+        x = mouseCoord[0] - self.__xStart
+        self.value = (x/self.__sizeX) * abs(self.__range[1] - self.__range[0]) + min(self.__range)
+
+    def checkForInputs(self):
+        self.container.checkForInputs()
+        self.slider.checkForInputs()
 
 
 class Geometric_Button(Geometric_Panel, Button):
