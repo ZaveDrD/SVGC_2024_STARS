@@ -7,6 +7,8 @@ def i_am_clicked():
     print("I AM CLICKED")
 
 #  ADD MENUS HERE
+
 TestMenu = M_SYS.Menu([
-    M_SYS.Slider((100, 20), (200, 200), Colour('#ffffff'), Colour("#990099"), [0, 100], 20)
+    M_SYS.Toggle([200, 20], [200, 200], Colour(100, 100, 100), Colour(255, 255, 255))
+    # M_SYS.Slider((200, 20), (200, 200), Colour(100, 100, 100), Colour(255, 255, 255), [0, 1000], 20)
 ])

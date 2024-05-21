@@ -134,10 +134,10 @@ class Circular_Button(Circular_Panel, Button):
         Button.__init__(self, function, self)
 
 
-class Toggle:
+class Toggle(UI_Element):
     button = True
 
-    def __init__(self, size: list[int], pos: list[int], toggleColour: tuple[Colour], bgColour: tuple[Colour],
+    def __init__(self, size: list[float], pos: list[float], toggleColour: Colour, bgColour: Colour,
                  default: bool = True, function: Callable[[], None] | None = None):
         """
         A toggle widget to get boolean input
@@ -152,15 +152,16 @@ class Toggle:
             default: (bool) Whether the toggle is selected at the start
             function: (Function) A function to run when the widget is clicked [optional]
         """
-        self.pos = pos
+
+        super().__init__(pos, bgColour)
         self.size = size
         self.show = True
         self.pressed = False
         self.toggleColour = toggleColour
-        self.bgColour = bgColour
+        self.bgColour = self.color
 
-        self.__rect = Rect_Button(size, pos, toggleColour[0], function=self.clicked, roundness=[30, 30, 30, 30])
-        self.__circle = Circular_Button(size[1]//3, (self.pos[0]+self.size[0]-self.size[0]//4, self.pos[1]+self.size[1]-self.size[1]//2), bgColour[0],
+        self.__rect = Rect_Button(size, pos, toggleColour, function=self.clicked, roundness=[30, 30, 30, 30])
+        self.__circle = Circular_Button(size[1]//3, (self.x+self.size[0]-self.size[0]//4, self.y+self.size[1]-self.size[1]//2), bgColour,
                                       function=self.clicked)
         self.isSet = default
         self.__rect.show = True
@@ -170,8 +171,8 @@ class Toggle:
 
     def clicked(self):
         self.isSet = not self.isSet
-        posIfNotSet = (self.pos[0]+self.size[0]//4, self.pos[1]+self.size[1]//2)
-        posIfSet = (self.pos[0]+self.size[0]-self.size[0]//4, self.pos[1]+self.size[1]-self.size[1]//2)
+        posIfNotSet = (self.x+self.size[0]//4, self.y+self.size[1]//2)
+        posIfSet = (self.x+self.size[0]-self.size[0]//4, self.y+self.size[1]-self.size[1]//2)
 
         if self.isSet:
             self.__circle.x = posIfSet[0]
@@ -260,10 +261,10 @@ class Slider(UI_Element):
         self.pos = pos
         self.size = size
 
-        self.container = Rect_Button(self.size, pos, (255, 255, 255), self.updateX)
-        self.min = Text(pos, str(range_[0]), min(size)//2, (0, 0, 0), **textOptions)
-        self.max = Text((pos[0]+size[0]-min(size), pos[1]), str(range_[1]), min(size)//2, (0, 0, 0), **textOptions)
-        self.slider = Rect_Button((min(size)*0.8, min(size)*1.1), (self.__posX(), pos[1]), (0, 0, 0), self.updateX)
+        self.container = Rect_Button(self.size, pos, bgColour, self.updateX, roundness=[5, 5, 5, 5])
+        self.min = Text((pos[0] + 5, pos[1]), str(range_[0]), min(size)//2, (0, 0, 0), **textOptions)
+        self.max = Text((pos[0]+size[0]-min(size) - 5, pos[1]), str(range_[1]), min(size)//2, (0, 0, 0), **textOptions)
+        self.slider = Rect_Button((min(size)*0.8, min(size)*1.1), (self.__posX(), pos[1]-1), self.color, self.updateX, roundness=[5, 5, 5, 5])
 
         self.container.needPressed = self.slider.needPressed = False
 
@@ -285,14 +286,15 @@ class Slider(UI_Element):
     def updateX(self):
         mouseCoord = A.mouse.get_pos()
         # Confirm the mouse is within the rectangle
-        if not (self.pos[0] + self.size[0] > mouseCoord[0] > self.pos[0]):
+        print(self.size[0])
+        if not (self.pos[0] + self.slider.width / 2 <= mouseCoord[0] <= self.pos[0] + self.size[0] - self.slider.width / 2):
             # Is not within the x-range of the container
             return
         elif not (self.pos[1] + self.size[1] > mouseCoord[1] > self.pos[1]):
             # Is not within the y-range of the container
             return
         # Find the coordinate within the rectangle, then normalise to the range
-        x = mouseCoord[0] - self.__xStart
+        x = mouseCoord[0] - self.__xStart - self.slider.width / 2
         self.value = (x/self.__sizeX) * abs(self.__range[1] - self.__range[0]) + min(self.__range)
 
     def checkForInputs(self):

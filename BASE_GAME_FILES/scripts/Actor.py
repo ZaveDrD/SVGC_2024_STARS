@@ -142,7 +142,7 @@ USE_POST_PROCESSING = True
 
 post_processing_effects = [
     #  USE 'SURFACE' IN PLACE OF WHERE 'A.game_specs.display' WOULD USUALLY BE
-    "shader_bloom_fast1(SURFACE, smooth_=5, threshold_=100, flag_=pygame.BLEND_RGB_ADD, saturation_=False)"
+    "shader_bloom_fast1(SURFACE, smooth_=5, threshold_=240, flag_=pygame.BLEND_RGB_ADD, saturation_=True)"
 ]
 
 
