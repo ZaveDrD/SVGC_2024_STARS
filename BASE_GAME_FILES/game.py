@@ -34,7 +34,7 @@ class Game:
         background_objects = A_SYS.generateBackgroundStars(2000, color=[255, 255, 255])
 
         self.backgroundAesthetics: A_SYS.BackgroundRenderer = A_SYS.BackgroundRenderer(background_objects, A.BACKGROUND_COLOR)
-        self.postProcessing: A_SYS.PostProcessing_Renderer = A_SYS.PostProcessing_Renderer(A.game_specs.display, A.post_processing_effects)
+
         self.phys_sim = None
 
         self.assets = {
@@ -78,7 +78,7 @@ class Game:
 
             for hand in HT_SIM.convertCamHandsToScreenSpaceHands(self.hands):  # MAKE INTO STARS LATER
                 for lm in hand:
-                    A.pygame.draw.circle(A.game_specs.display, [255, 255, 255], center=(lm[1], lm[2]), radius=5)
+                    A.pygame.draw.circle(A.game_specs.renderer.layers[0].display, [255, 255, 255], center=(lm[1], lm[2]), radius=5)
 
             # for gesture in gestures:  # DISPLAYS WHAT GESTURES ARE BEING DONE (alL gestures)
             #     gesturingHands = detect_vertebraeC6(hands, gestures[gesture])
@@ -98,17 +98,14 @@ class Game:
                 ability.checkForAbilityTrigger(game_time_change_increment)
 
             screen_centre_pos = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]  # shows the center of the screen
-            # A.pygame.draw.circle(A.game_specs.display, [0, 0, 255], screen_centre_pos, 5)
-
-            if A.USE_POST_PROCESSING: self.postProcessing.RenderEffects()
+            # A.pygame.draw.circle(A.game_specs.renderer.layers[0].display, [0, 0, 255], screen_centre_pos, 5)
 
             Menus.TestMenu.open_menu()
             Menus.TestMenu.updateMenu()
 
-            A.game_specs.screen.blit(pygame.transform.scale(A.game_specs.display, A.game_specs.screen.get_size()),
-                                     (0, 0))
+            A.game_specs.renderer.render_frame()
+            # A.game_specs.UI_renderer.render_frame()
 
-            A.pygame.display.update()
             A.game_specs.clock.tick(A.TPS)
 
 

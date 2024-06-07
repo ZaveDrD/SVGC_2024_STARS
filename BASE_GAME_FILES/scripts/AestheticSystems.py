@@ -61,7 +61,7 @@ class BackgroundObject:
 
     def display(self):
         (self.px, self.py) = self.conv_x_to_px(self.x, self.y)
-        pygame.draw.circle(A.game_specs.display, self.color, [self.px, self.py],
+        pygame.draw.circle(A.game_specs.renderer.layers[0].display, self.color, [self.px, self.py],
                            int(self.radius) * A.player_zoom)
 
 
@@ -71,7 +71,7 @@ class BackgroundRenderer:
         self.objects = objects
 
     def render_background(self):
-        A.game_specs.display.fill(self.background_color)
+        A.game_specs.renderer.layers[0].display.fill(self.background_color)
 
     def render_background_objects(self):
         for obj in self.objects:
@@ -82,6 +82,12 @@ class PostProcessing_Renderer:
     def __init__(self, mainSurf: pygame.surface, effects: list[str]):
         self.effect_list = effects
         self.mainSurf = mainSurf
+
+    def add_effect(self, effect: str):
+        self.effect_list.append(effect)
+
+    def remove_effect(self, effect: str):
+        self.effect_list.remove(effect)
 
     @staticmethod
     def renderEffectToSurface(surface, effects: list[str], rep='SURFACE'):

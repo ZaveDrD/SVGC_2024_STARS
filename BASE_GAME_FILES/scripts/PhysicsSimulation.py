@@ -170,7 +170,7 @@ class CelestialBody:
     def display(self):
         if not self.merged:
             (self.px, self.py) = self.conv_x_to_px(self.x, self.y)
-            pygame.draw.circle(A.game_specs.display, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
+            pygame.draw.circle(A.game_specs.renderer.layers[0].display, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
 
 
 class Planet(CelestialBody):

@@ -51,7 +51,7 @@ class Rect_Panel(UI_Element):
     def display(self):
         if not self.show: return
         self.bounds = pygame.Rect(self.x, self.y, self.width, self.height)
-        pygame.draw.rect(A.game_specs.display, self.color,
+        pygame.draw.rect(A.game_specs.UI_renderer.layers[0].display, self.color,
                          self.bounds, width=self.outlineThickness,
                          border_top_left_radius=self.roundness[0], border_top_right_radius=self.roundness[1],
                          border_bottom_right_radius=self.roundness[2],
@@ -75,7 +75,7 @@ class Geometric_Panel(UI_Element):
 
     def display(self):
         if not self.show: return
-        self.col = pygame.draw.polygon(A.game_specs.display, self.color, self.points, width=self.outlineThickness)
+        self.col = pygame.draw.polygon(A.game_specs.UI_renderer.layers[0].display, self.color, self.points, width=self.outlineThickness)
 
     def is_clicked(self) -> bool:
         return False  # IDK how to do this yet
@@ -90,7 +90,7 @@ class Circular_Panel(UI_Element):
 
     def display(self):
         if not self.show: return
-        pygame.draw.circle(A.game_specs.display, self.color, [self.x, self.y], self.radius, width=self.outlineThickness,
+        pygame.draw.circle(A.game_specs.UI_renderer.layers[0].display, self.color, [self.x, self.y], self.radius, width=self.outlineThickness,
                            draw_top_left=self.corners[0], draw_top_right=self.corners[1],
                            draw_bottom_right=self.corners[2], draw_bottom_left=self.corners[3])
 

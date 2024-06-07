@@ -56,7 +56,7 @@ class AbilityFunctions:
 
                 if abs(math.dist(landmarkCoord, bodyPos)) <= planetaryBody.radius * A.player_zoom:
                     planetaryBody.set_pos_px([landmarkCoord[0], landmarkCoord[1]])
-                    A.pygame.draw.line(A.game_specs.display, [0, 0, 255], landmarkCoord, bodyPos)
+                    A.pygame.draw.line(A.game_specs.renderer.layers[0].display, [0, 0, 255], landmarkCoord, bodyPos)
 
                     return True
 

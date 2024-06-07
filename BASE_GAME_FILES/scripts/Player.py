@@ -27,7 +27,7 @@ class Player(PhysSim.Spacecraft):
             px, py = PhysSim.CelestialBody.conv_x_to_px(x, y)
             px0, py0 = PhysSim.CelestialBody.conv_x_to_px(x0, y0)
 
-            A.pygame.draw.line(A.game_specs.display, [0, 255, 0], [px, py], [px0, py0])
+            A.pygame.draw.line(A.game_specs.renderer.layers[0].display, [0, 255, 0], [px, py], [px0, py0])
 
     def checkForLevelEnd(self):
         if self.merged and self.merged_to == self.endGoal:

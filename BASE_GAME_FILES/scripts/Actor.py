@@ -2,6 +2,8 @@ import pygame
 import atexit
 import sys
 
+import BASE_GAME_FILES.scripts.Renderer as RenderModule
+
 ########################################################################################################################
 #############################################  SIMULATION STUFF  #######################################################
 ########################################################################################################################
@@ -139,8 +141,10 @@ motion_gestures = {
 ########################################################################################################################
 
 USE_POST_PROCESSING = True
+NUM_LAYERS: int = 5
+UI_LAYERS: int = 5
 
-post_processing_effects = [
+global_post_processing_effects = [
     #  USE 'SURFACE' IN PLACE OF WHERE 'A.game_specs.display' WOULD USUALLY BE
     "shader_bloom_fast1(SURFACE, smooth_=5, threshold_=240, flag_=pygame.BLEND_RGB_ADD, saturation_=True)"
 ]
@@ -179,7 +183,9 @@ class GameSpecs:
 
         pygame.display.set_caption("SVGC 2024 - Stars")
         self.screen = pygame.display.set_mode(self.SIZE)
-        self.display = pygame.Surface((self.SIZE[0] / 2, self.SIZE[1] / 2))
+
+        self.renderer: RenderModule.Renderer = RenderModule.Renderer(NUM_LAYERS, global_post_processing_effects, self, USE_POST_PROCESSING)
+        self.UI_renderer: RenderModule.Renderer = RenderModule.Renderer(UI_LAYERS, [], self, False)
 
         self.clock = pygame.time.Clock()
 
