@@ -61,7 +61,7 @@ class BackgroundObject:
 
     def display(self):
         (self.px, self.py) = self.conv_x_to_px(self.x, self.y)
-        pygame.draw.circle(A.game_specs.renderer.layers[0].display, self.color, [self.px, self.py],
+        pygame.draw.circle(A.game_specs.renderer.layers[len(A.game_specs.renderer.layers) - 2].display, self.color, [self.px, self.py],
                            int(self.radius) * A.player_zoom)
 
 
@@ -71,7 +71,7 @@ class BackgroundRenderer:
         self.objects = objects
 
     def render_background(self):
-        A.game_specs.renderer.layers[0].display.fill(self.background_color)
+        A.game_specs.renderer.layers[len(A.game_specs.renderer.layers) - 1].display.fill(self.background_color)
 
     def render_background_objects(self):
         for obj in self.objects:
