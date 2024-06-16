@@ -13,7 +13,7 @@ class RenderLayer:
     def __init__(self, layer_index, PP_Effects: list[str], layer_size):
         self.index = layer_index
         self.layer_size = layer_size
-        self.display = None
+        self.display: pygame.Surface = None
         self.reset_layer()
 
         self.post_processing_renderer: PostProcessing_Renderer = PostProcessing_Renderer(self.display, PP_Effects)

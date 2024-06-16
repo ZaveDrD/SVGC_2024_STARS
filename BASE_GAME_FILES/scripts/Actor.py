@@ -144,9 +144,17 @@ USE_POST_PROCESSING = True
 NUM_LAYERS: int = 5
 UI_LAYERS: int = 5
 
+initial_art_generation = {
+    "Planet": 1,
+    "Meteor": 0,
+    "Star": 1,
+    "Black_Hole": 1
+}
+
 global_post_processing_effects = [
     #  USE 'SURFACE' IN PLACE OF WHERE 'A.game_specs.display' WOULD USUALLY BE
-    "shader_bloom_fast1(SURFACE, smooth_=5, threshold_=240, flag_=pygame.BLEND_RGB_ADD, saturation_=True)"
+    "shader_bloom_fast1(SURFACE, smooth_=5, threshold_=240, flag_=pygame.BLEND_RGB_ADD, saturation_=True)",
+    "pixelation(SURFACE)"
 ]
 
 

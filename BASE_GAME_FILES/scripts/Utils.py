@@ -5,12 +5,12 @@ import numpy as np
 import os
 import BASE_GAME_FILES.scripts.Actor as A
 
-BASE_IMG_PATH = ""
+BASE_IMG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)).rstrip("scripts"), "ProceduralArt")
 Colour = A.pygame.Color
 
 
 def load_image(path):
-    img = pygame.image.load(BASE_IMG_PATH + path).convert()
+    img = pygame.image.load(os.path.join(BASE_IMG_PATH, path)).convert()
     img.set_colorkey(A.COLOUR_KEY)
     return img
 
@@ -29,8 +29,11 @@ def ScaleCoordinateToScreenSize(px: list[float]) -> tuple:
     return px[0] * ratioX, px[1] * ratioY
 
 
-def save_warped_img(filename: str):
-    img = cv2.imread(filename)
+def save_warped_img(filename: str, img_path: str = None):
+    if img_path is None:
+        img = cv2.imread(filename)
+    else:
+        img = cv2.imread(os.path.join(img_path, filename))
 
     # set gain
     gain = 1.5
@@ -82,5 +85,7 @@ def save_warped_img(filename: str):
     result2[mask==0] = bgcolor
 
     # save results
-    cv2.imwrite(os.path.join(BASE_IMG_PATH, (filename[:-4:]+"_spherized.png")), result2)
+    im_path = os.path.join(BASE_IMG_PATH, ("spherized_"+filename[:-4:]+".png"))
+    print(im_path)
+    cv2.imwrite(im_path, result2)
 

@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 import math
@@ -14,6 +15,7 @@ import BASE_GAME_FILES.scripts.MenuSystems as M_SYS
 import BASE_GAME_FILES.data.MenuData as Menus
 import BASE_GAME_FILES.scripts.AbilitySystems as Ab_SYS
 import BASE_GAME_FILES.scripts.Utils as utils
+import BASE_GAME_FILES.scripts.PlanetArtGenerator as PAG
 
 import BASE_GAME_FILES.data.Levels as Levels
 import BASE_GAME_FILES.data.Abilities as Abilities
@@ -37,8 +39,14 @@ class Game:
 
         self.phys_sim = None
 
-        self.assets = {
+        PAG.Generate_Art(A.initial_art_generation['Planet'], A.initial_art_generation['Meteor'],
+                         A.initial_art_generation['Star'], A.initial_art_generation['Black_Hole'])
 
+        self.assets = {
+            'Planet': [i for i in os.listdir(utils.BASE_IMG_PATH) if i.__contains__("spherized_planet_procedural_art")],
+            'Meteor': [i for i in os.listdir(utils.BASE_IMG_PATH) if i.__contains__("spherized_meteor_procedural_art")],
+            'Star': [i for i in os.listdir(utils.BASE_IMG_PATH) if i.__contains__("spherized_star_procedural_art")],
+            'Black_Hole': [i for i in os.listdir(utils.BASE_IMG_PATH) if i.__contains__("spherized_black_hole_procedural_art")]
         }
 
     def get_hands(self):
@@ -102,6 +110,9 @@ class Game:
 
             Menus.TestMenu.open_menu()
             Menus.TestMenu.updateMenu()
+
+            new_display = pixelation(pygame.transform.scale(utils.load_image(self.assets['Star'][0]), (350, 350)))
+            A.game_specs.renderer.layers[0].display.blit(new_display, (100, 50))
 
             A.game_specs.renderer.render_frame()
             # A.game_specs.UI_renderer.render_frame()
