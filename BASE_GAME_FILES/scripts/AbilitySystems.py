@@ -4,6 +4,7 @@ import random
 import BASE_GAME_FILES.scripts.Actor as A
 import BASE_GAME_FILES.scripts.HandTrackingSim as HT_SIM
 import BASE_GAME_FILES.scripts.PhysicsSimulation as P_SIM
+import BASE_GAME_FILES.data.Assets as Assets
 
 
 class Ability:
@@ -47,8 +48,8 @@ class AbilityFunctions:
                 if hand >= len(hands): break
 
                 pinchingHand = HT_SIM.calcScreenSpaceLandmarks(hands[hand])
-                landmarkCoord = [pinchingHand[A.gestures['Pinch'][0][0][1]][1],
-                                 pinchingHand[A.gestures['Pinch'][0][0][1]][2]]
+                landmarkCoord = [pinchingHand[A.gestures['Pinch'][0][0][1]][1] - planetaryBody.radius * A.player_zoom,
+                                 pinchingHand[A.gestures['Pinch'][0][0][1]][2] - planetaryBody.radius * A.player_zoom]
 
                 bodyPos = [planetaryBody.px, planetaryBody.py]
 
@@ -74,9 +75,8 @@ class AbilityFunctions:
                 landmarkCoord = [(summoningHand[9][1] + summoningHand[12][1]) / 2,
                                  (summoningHand[9][2] + summoningHand[12][2]) / 2]
 
-                x, y = P_SIM.CelestialBody.conv_px_to_x(landmarkCoord[0], landmarkCoord[1])
-                body = P_SIM.Planet([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)],
-                                           10e13, [x, y])
+                x, y = P_SIM.CelestialBody.conv_px_to_x(0, landmarkCoord[0], landmarkCoord[1])
+                body = P_SIM.Planet(Assets.rand_key('Planet'), 10e13, [x, y])
                 phys_sim.add_object([body])
 
                 return True

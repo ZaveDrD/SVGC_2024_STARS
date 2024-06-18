@@ -145,9 +145,9 @@ NUM_LAYERS: int = 5
 UI_LAYERS: int = 5
 
 initial_art_generation = {
-    "Planet": 1,
+    "Planet": 15,
     "Meteor": 0,
-    "Star": 1,
+    "Star": 10,
     "Black_Hole": 1
 }
 

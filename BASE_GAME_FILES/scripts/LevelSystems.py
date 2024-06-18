@@ -3,9 +3,7 @@ import copy
 import BASE_GAME_FILES.scripts.PhysicsSimulation as PhysicsSimulation
 import BASE_GAME_FILES.scripts.Actor as A
 import BASE_GAME_FILES.scripts.Player as P
-
-GameEndObject = PhysicsSimulation.GravitationField([0, 255, 0], 10e14, [0, 0], interaction=False, static=True)
-
+import BASE_GAME_FILES.data.Assets as Assets
 
 class Level:
     def __init__(self, levelName, bodies, playerStartPos, endGoalPos, isMenu=False, usePhysics=True):
@@ -45,6 +43,8 @@ class LevelLoader:
     def __init__(self, levels: list[Level], startLevel=0):
         self.levels = levels
 
+        self.GameEndObject = PhysicsSimulation.GravitationField(Assets.asset_dict['Black_Hole'][0], 10e14, [0, 0], interaction=False, static=True)
+
         self.currentLevelIndex = startLevel
         self.currentLevel = self.levels[self.currentLevelIndex]
         self.currentLevelPhysSim = None
@@ -78,12 +78,12 @@ class LevelLoader:
             self.currentLevel.load_actor_level_data()
 
         if self.currentLevel.endGoal is None:
-            self.currentLevel.endGoal = copy.deepcopy(GameEndObject)
+            self.currentLevel.endGoal = copy.deepcopy(self.GameEndObject)
             self.currentLevel.endGoal.set_pos(self.currentLevel.endGoalPos)
             self.currentLevel.bodies.append(self.currentLevel.endGoal)
 
         if self.currentLevel.playerBody is None:
-            self.currentLevel.playerBody = P.Player(self.currentLevelPhysSim, self.currentLevel.endGoal, [0, 0, 255], 10e13, self.currentLevel.playerStartPos)
+            self.currentLevel.playerBody = P.Player(self.currentLevelPhysSim, self.currentLevel.endGoal, Assets.rand_key('Star'), 10e13, self.currentLevel.playerStartPos)
             self.currentLevel.bodies.append(self.currentLevel.playerBody)
 
         if self.currentLevel.usePhysics: self.currentLevelPhysSim = PhysicsSimulation.PhysicsSim(self.currentLevel.bodies)

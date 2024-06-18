@@ -3,9 +3,9 @@ import BASE_GAME_FILES.scripts.Actor as A
 
 
 class Player(PhysSim.Spacecraft):
-    def __init__(self, phys_sim: PhysSim.PhysicsSim, endGoal: PhysSim.CelestialBody, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
-                 start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
-        super().__init__(color, mass, pos, velocity, acceleration, start_force, static, interaction)
+    def __init__(self, phys_sim: PhysSim.PhysicsSim, endGoal: PhysSim.CelestialBody, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True, *args):
+        super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction)
         self.interaction = False
         self.static = False
         self.phys_sim = phys_sim
@@ -24,8 +24,8 @@ class Player(PhysSim.Spacecraft):
 
             # print("x:", x, x0, "\ny:", y, y0, "\nPrediction no.", i, "\n")
 
-            px, py = PhysSim.CelestialBody.conv_x_to_px(x, y)
-            px0, py0 = PhysSim.CelestialBody.conv_x_to_px(x0, y0)
+            px, py = PhysSim.CelestialBody.conv_x_to_px(0, x, y)
+            px0, py0 = PhysSim.CelestialBody.conv_x_to_px(0, x0, y0)
 
             A.pygame.draw.line(A.game_specs.renderer.layers[0].display, [0, 255, 0], [px, py], [px0, py0])
 

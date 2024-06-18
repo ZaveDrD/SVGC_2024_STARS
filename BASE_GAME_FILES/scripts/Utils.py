@@ -86,6 +86,5 @@ def save_warped_img(filename: str, img_path: str = None):
 
     # save results
     im_path = os.path.join(BASE_IMG_PATH, ("spherized_"+filename[:-4:]+".png"))
-    print(im_path)
     cv2.imwrite(im_path, result2)
 

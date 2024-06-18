@@ -2,13 +2,14 @@ import math
 import pygame
 
 import BASE_GAME_FILES.scripts.Actor as A
+from PygameShader import pixelation
 
 
 class CelestialBody:
-    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+    def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
                  start_force: list[int] = [0, 0], static=False, interaction=True, *args):
         # Aesthetic Parameters
-        self.color: list[int] = color
+        self.img = img
 
         # Physics Parameters (Const)
         self.mass: float = mass
@@ -39,7 +40,7 @@ class CelestialBody:
         self.calc_radius()
 
     def set_pos_px(self, pos: list[float]):
-        self.x, self.y = self.conv_px_to_x(math.ceil(pos[0]), math.ceil(pos[1]))
+        self.x, self.y = self.conv_px_to_x(self.radius, math.ceil(pos[0]), math.ceil(pos[1]))
         self.display()
 
     def set_pos(self, pos: list[float]):
@@ -95,7 +96,7 @@ class CelestialBody:
         return vx, vy
 
     @staticmethod
-    def conv_x_to_px(x, y) -> tuple:
+    def conv_x_to_px(radius, x, y) -> tuple:
         body_pos = [int(x), int(y)]
 
         screenCentreOffset = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]
@@ -105,16 +106,19 @@ class CelestialBody:
 
         distance = [body_pos[0] - screen_centre_pos[0], body_pos[1] - screen_centre_pos[1]]
 
-        px = A.player_zoom * distance[0] + screenCentreOffset[0]
-        py = A.player_zoom * distance[1] + screenCentreOffset[1]
+        px = A.player_zoom * distance[0] + screenCentreOffset[0] - radius * A.player_zoom
+        py = A.player_zoom * distance[1] + screenCentreOffset[1] - radius * A.player_zoom
 
         # print("CONV X -> PX:\nx:", x, ":", px, "\ny:", y, ":", py)
 
         return px, py
 
     @staticmethod
-    def conv_px_to_x(px, py) -> tuple:
+    def conv_px_to_x(radius, px, py) -> tuple:
         screenCentreOffset = [A.game_specs.SIZE[0] / 4, A.game_specs.SIZE[1] / 4]
+
+        px += radius * A.player_zoom
+        py += radius * A.player_zoom
 
         screen_centre_pos = [(screenCentreOffset[0] + A.player_view_pos_x),
                              (screenCentreOffset[1] + A.player_view_pos_y)]
@@ -169,26 +173,28 @@ class CelestialBody:
 
     def display(self):
         if not self.merged:
-            (self.px, self.py) = self.conv_x_to_px(self.x, self.y)
-            pygame.draw.circle(A.game_specs.renderer.layers[0].display, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
+            (self.px, self.py) = self.conv_x_to_px(self.radius, self.x, self.y)
+            planet_surf = pixelation(pygame.transform.scale(self.img, (int(self.radius) * 2 * A.player_zoom, int(self.radius) * 2 * A.player_zoom)))
+            A.game_specs.renderer.layers[0].display.blit(planet_surf, [self.px, self.py])
+            # pygame.draw.circle(A.game_specs.renderer.layers[0].display, self.color, [self.px, self.py], int(self.radius) * A.player_zoom)
 
 
 class Planet(CelestialBody):
-    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+    def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
                  start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
-        super().__init__(color, mass, pos, velocity, acceleration, start_force, static, interaction)
+        super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction)
 
 
 class Spacecraft(CelestialBody):
-    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
-                 start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
-        super().__init__(color, mass, pos, velocity, acceleration, start_force, static, interaction)
+    def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True, *args):
+        super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction)
 
 
 class GravitationField(CelestialBody):
-    def __init__(self, color, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+    def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
                  start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
-        super().__init__(color, mass, pos, velocity, acceleration, start_force, static, interaction)
+        super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction)
         self.collision = False
 
 
