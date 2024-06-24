@@ -1,10 +1,9 @@
 import os.path
 import random
-from pynoise.noisemodule import *
-from pynoise.noiseutil import *
+from PyNoise.noisemodule import *
+from PyNoise.noiseutil import *
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from PIL import Image
 
 from BASE_GAME_FILES.scripts.Utils import save_warped_img, BASE_IMG_PATH
 
