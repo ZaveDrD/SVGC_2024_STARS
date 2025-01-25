@@ -24,12 +24,14 @@ GRAVITATIONAL_CONSTANT = 6.67408 * (10 ** (-11))
 
 #  CONSTANTS
 PLAYER_MOVE_SPEED = 7.5
-ZOOM_MULT_INC = 0.01
+ZOOM_MULT_INC = 0.025
 
 #  VARIABLES
 player_view_pos_x, player_view_pos_y = 0, 0
 player_zoom = 1
 player_zoom_max_min = [0.25, 5]
+
+selected_level = 0
 
 
 def updateMovementParams(keys, A):
@@ -52,8 +54,8 @@ def updateMovementParams(keys, A):
     if keys[pygame.K_LEFTBRACKET]:
         A.time_change_mult -= TIME_CHANGE_MULT_CHANGE_RATE
 
-    if A.time_change_mult <= 0:
-        A.ticks_btw_calculations = 0
+    if A.time_change_mult <= 0.005:
+        A.ticks_btw_calculations = 60
     else:
         A.ticks_btw_calculations = SIM_TIME_EQUIVALENCE ** (1 / A.time_change_mult) / TPS
 
@@ -93,8 +95,6 @@ game_time = 0
 ########################################################################################################################
 
 #  VARIABLES
-selected_level = 0
-
 atexit.register(lambda: [pygame.quit(), sys.exit()])
 
 ########################################################################################################################
@@ -109,22 +109,92 @@ gestures = {
         [[None, 4], [None, 8], 50, True],
         [[None, 3], [None, 7], 40, False]
     ],
-    'Finger Gun': [
+    'Point': [
+        [[None, 8],  [None, 12], 130, False],
+        [[None, 12], [None, 16], 60, True],
+        [[None, 16], [None, 20], 60, True]
+    ],
+    'Zoom In': [
+        [[None, 8],  [None, 4], 70, True],
+        [[None, 12], [None, 4], 70, True],
+        [[None, 16], [None, 4], 70, True],
+        [[None, 20], [None, 4], 70, True],
+        [[None, 8],  [None, 4], 30, False],
+        [[None, 12], [None, 4], 30, False],
+        [[None, 16], [None, 4], 30, False],
+        [[None, 20], [None, 4], 30, False],
+        [[None, 8],  [None, 12], 60, True],
+        [[None, 12], [None, 16], 60, True],
+        [[None, 16], [None, 20], 60, True],
+    ],
+    'Zoom Out': [
+        [[None, 8],  [None, 4], 150, True],
+        [[None, 12], [None, 4], 150, True],
+        [[None, 16], [None, 4], 150, True],
+        [[None, 20], [None, 4], 150, True],
+        [[None, 8],  [None, 4], 120, False],
+        [[None, 12], [None, 4], 120, False],
+        [[None, 16], [None, 4], 120, False],
+        [[None, 20], [None, 4], 120, False],
+        [[None, 8],  [None, 12], 60, True],
+        [[None, 12], [None, 16], 60, True],
+        [[None, 16], [None, 20], 60, True],
+    ],
+    'Time Control': [
         [[None, 8], [None, 12], 60, True],
         [[None, 7], [None, 11], 60, True],
         [[None, 12], [None, 16], 150, False],
         [[None, 16], [None, 20], 60, True]
     ],
-    'Summon Small Planet': [
-        [[None, 4], [None, 12], 50, True],
-        [[None, 3], [None, 11], 40, False],
-        [[None, 8], [None, 10], 60, False]
+    'Summon Planet': [
+        [[None, 8],  [None, 12], 60, True],
+        [[None, 12], [None, 16], 60, True],
+        [[None, 16], [None, 20], 60, True],
+        [[None, 6], [None, 1], 80, False],
+        [[None, 8], [None, 4], 40, True]
     ],
-    # 'shadowWizardMoneyGang': [
-    #     [[0, 8], [1, 8], 40, True],
-    #     [[0, 20], [1, 20], 40, True],
-    #     [[0, 4], [1, 4], 30, True]
-    # ],
+    'Summon Star': [
+        [[0, 12], [1, 12], 60, True],
+        [[0, 4], [1, 4], 60, True],
+        [[0, 9], [1, 9], 120, False],
+        [[0, 12], [0, 4], 120, False],
+    ],
+    'Enlarge': [
+        [[None, 8], [None, 20], 90, False],
+        [[None, 12], [None, 16], 60, True],
+        [[None, 12], [None, 8], 120, False],
+        [[None, 16], [None, 20], 120, False],
+        [[None, 4], [None, 10], 60, True]
+    ],
+    'Shrink': [
+        [[None, 8], [None, 20], 90, False],
+        [[None, 12], [None, 16], 60, True],
+        [[None, 12], [None, 8], 120, False],
+        [[None, 16], [None, 20], 120, False],
+        [[None, 4], [None, 10], 90, False]
+    ],
+    'Summon Black Hole': [
+        [[0, 8], [1, 8], 40, True],
+        [[0, 20], [1, 20], 40, True],
+        [[0, 10], [1, 10], 120, False],
+        [[0, 8], [0, 20], 70, False]
+    ],
+    'Reset': [
+        [[0, 8], [0, 12], 60, True],
+        [[0, 12], [0, 16], 60, True],
+        [[0, 16], [0, 20], 60, True],
+        [[0, 4], [0, 12], 100, False],
+
+        [[1, 8], [1, 12], 60, True],
+        [[1, 12], [1, 16], 60, True],
+        [[1, 16], [1, 20], 60, True],
+        [[1, 4], [1, 12], 100, False],
+
+        [[0, 12], [0, 0], 80, True],
+        [[1, 12], [1, 0], 80, True],
+        [[0, 16], [0, 0], 80, True],
+        [[1, 16], [1, 0], 80, True],
+    ]
 }
 
 motion_gestures = {
@@ -145,15 +215,15 @@ NUM_LAYERS: int = 5
 UI_LAYERS: int = 5
 
 initial_art_generation = {
-    "Planet": 10,
+    "Planet": 0,
     "Meteor": 0,
-    "Star": 10,
-    "Black_Hole": 1
+    "Star": 0,
+    "Black_Hole": 0
 }
 
 global_post_processing_effects = [
     #  USE 'SURFACE' IN PLACE OF WHERE 'A.game_specs.display' WOULD USUALLY BE
-    "shader_bloom_fast1(SURFACE, smooth_=5, threshold_=240, flag_=pygame.BLEND_RGB_ADD, saturation_=True)",
+    "shader_bloom_fast1(SURFACE, smooth_=5, threshold_=200, flag_=pygame.BLEND_RGB_ADD, saturation_=True)",
     "pixelation(SURFACE)"
 ]
 

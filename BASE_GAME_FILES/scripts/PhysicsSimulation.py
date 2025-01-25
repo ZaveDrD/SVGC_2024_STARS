@@ -1,4 +1,6 @@
 import math
+from random import random
+
 import pygame
 
 import BASE_GAME_FILES.scripts.Actor as A
@@ -7,13 +9,13 @@ from PygameShader import pixelation
 
 class CelestialBody:
     def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
-                 start_force: list[int] = [0, 0], static=False, interaction=True, *args):
+                 start_force: list[int] = [0, 0], static=False, interaction=True, collidable=True, *args):
         # Aesthetic Parameters
         self.img = img
 
         # Physics Parameters (Const)
         self.mass: float = mass
-        self.collision = True
+        self.collision = collidable
         self.static = static
         self.interaction = interaction
 
@@ -49,6 +51,14 @@ class CelestialBody:
 
     def calc_radius(self):
         self.radius = math.sqrt((self.mass / A.SCALE_MASS_EQUIVALENCE) / math.pi)
+
+    def add_mass(self, mass):
+        if self.mass - mass <= 0:
+            self.mass = 1000
+            return
+
+        self.mass += mass
+        self.calc_radius()
 
     def calc_pos(self):
         self.x += self.vx
@@ -95,6 +105,9 @@ class CelestialBody:
 
         return vx, vy
 
+    def return_velocity(self):
+        return self.vx, self.vy
+
     @staticmethod
     def conv_x_to_px(radius, x, y) -> tuple:
         body_pos = [int(x), int(y)]
@@ -135,6 +148,9 @@ class CelestialBody:
         if difX < 0: angle += math.pi
 
         return angle
+
+    def return_mass(self):
+        return self.mass
 
     def calc_force(self, object):
         distance = math.sqrt((self.x - object.x) ** 2 + (self.y - object.y) ** 2)
@@ -181,8 +197,39 @@ class CelestialBody:
 
 class Planet(CelestialBody):
     def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
-                 start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
-        super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction)
+                 start_force: list[int] = [0, 0], static=False, interaction=True, collidable=True,  *args):
+        super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction, collidable)
+
+
+class Star(CelestialBody):
+    def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True, collidable=True, *args):
+        super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction, collidable)
+
+    def calc_radius(self):
+        self.radius = math.sqrt(math.sqrt((self.mass / A.SCALE_MASS_EQUIVALENCE) / math.pi))
+
+
+class BlackHole(CelestialBody):
+    def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
+                 start_force: list[int] = [0, 0], static=False, interaction=True, collidable=True, *args):
+        super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction, collidable)
+
+    def calc_radius(self):
+        self.radius = math.sqrt(math.sqrt(math.sqrt((self.mass / A.SCALE_MASS_EQUIVALENCE) / math.pi))) * 4
+
+
+def draw_animated_png(display, position, frames, direction, frame_index, size, differing=False):
+    if differing:
+        frame_index = (frame_index + random.randint(-2, 2)) % len(frames)
+    frame = frames[frame_index]
+    frame = frame.copy()
+
+    angle = math.degrees(math.atan2(direction[0], direction[1]))
+    frame = pygame.transform.rotate(frame, angle-180)
+
+    scaled_frame = pygame.transform.scale(frame, size)
+    display.blit(scaled_frame, position)
 
 
 class Spacecraft(CelestialBody):
@@ -190,12 +237,41 @@ class Spacecraft(CelestialBody):
                  start_force: list[int] = [0, 0], static=False, interaction=True, *args):
         super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction)
 
+        # Import PlayerShip animation from GamArt
+        self.animated_ship_frames = [pygame.image.load(f'GameArt\PlayerShip\Player_Ship-{i + 1}.png') for i
+                                          in range(5)]
+        self.current_animation_frame = 0
+
+    def display(self):
+        if not self.merged:
+            (self.px, self.py) = self.conv_x_to_px(self.radius, self.x, self.y)
+            planet_surf = pixelation(pygame.transform.scale(self.animated_ship_frames[self.current_animation_frame],
+                                                             (int(self.radius) * 2 * A.player_zoom,
+                                                              int(self.radius) * 2 * A.player_zoom)))
+
+            self.current_animation_frame = (self.current_animation_frame + 1) % len(self.animated_ship_frames)
+            draw_animated_png(A.game_specs.renderer.layers[0].display, [self.px, self.py], self.animated_ship_frames, self.return_velocity(), self.current_animation_frame, (int(self.radius) * 2 * A.player_zoom, int(self.radius) * 2 * A.player_zoom))
+
 
 class GravitationField(CelestialBody):
     def __init__(self, img, mass, pos: list[float], velocity: list[float] = [0, 0], acceleration: list[float] = [0, 0],
                  start_force: list[int] = [0, 0], static=False, interaction=True,  *args):
         super().__init__(img, mass, pos, velocity, acceleration, start_force, static, interaction)
         self.collision = False
+        self.animated_portal_frames = [pygame.image.load(f'GameArt\EndPortalAnimationFrames\Exit_Portal-{i + 1}.png') for i
+                                          in range(5)]
+        self.current_animation_frame = 0
+
+    def display(self):
+        if not self.merged:
+            (self.px, self.py) = self.conv_x_to_px(self.radius, self.x, self.y)
+            planet_surf = pixelation(pygame.transform.scale(self.animated_portal_frames[self.current_animation_frame],
+                                                             (int(self.radius) * 2 * A.player_zoom,
+                                                              int(self.radius) * 2 * A.player_zoom)))
+
+            self.current_animation_frame = (self.current_animation_frame + 1) % len(self.animated_portal_frames)
+            draw_animated_png(A.game_specs.renderer.layers[0].display, [self.px, self.py], self.animated_portal_frames, self.return_velocity(), self.current_animation_frame, (int(self.radius) * 2 * A.player_zoom, int(self.radius) * 2 * A.player_zoom))
+
 
 
 class PhysicsSim:
@@ -214,8 +290,11 @@ class PhysicsSim:
     def applyForces(objects: list[CelestialBody]):
         for x in objects:
             for y in objects:
-                if not x.merged and not y.merged and x != y and x.collision and y.collision:
+                if x == Spacecraft or y == Spacecraft:
                     x.calc_collision_data(y)
+                else:
+                    if not x.merged and not y.merged and x != y and x.collision and y.collision:
+                        x.calc_collision_data(y)
 
         for x in objects:
             if not x.static:

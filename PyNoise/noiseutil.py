@@ -365,7 +365,7 @@ class RenderImage():
                 bg_color = Color(1, 1, 1)
                 color = self.calc_dest_color(dest_color, bg_color, light_intensity)
                 t = color.get_upscaled_value_tuple()
-                img.putpixel((x,height-1-y), (t[0], t[1], t[2]))
+                img.putpixel((x, height-1-y), (t[0], t[1], t[2]))
 
         if self.directory is None:
             img.save(image_name, 'PNG')

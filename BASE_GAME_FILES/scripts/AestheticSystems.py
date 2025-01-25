@@ -6,12 +6,13 @@ from PygameShader import *
 import BASE_GAME_FILES.scripts.Actor as A
 
 
-def generateBackgroundStars(numBodies: int, min_x: int = -5000, max_x: int = 5000, min_y: int = -5000, max_y: int = 5000,
-                  color: list[int] = [255, 255, 255]):
+def generateBackgroundStars(numBodies: int, min_x: int = -5000, max_x: int = 5000, min_y: int = -5000,
+                            max_y: int = 5000,
+                            color: list[int] = [255, 255, 255]):
     stars = []
     for i in range(0, numBodies):
         stars.append(BackgroundObject(color, (random.randint(3, 8)) * 10 ** (random.randint(11, 12)),
-                                               [random.randint(min_x, max_x), random.randint(min_y, max_y)]))
+                                      [random.randint(min_x, max_x), random.randint(min_y, max_y)]))
     return stars
 
 
@@ -61,7 +62,8 @@ class BackgroundObject:
 
     def display(self):
         (self.px, self.py) = self.conv_x_to_px(self.x, self.y)
-        pygame.draw.circle(A.game_specs.renderer.layers[len(A.game_specs.renderer.layers) - 2].display, self.color, [self.px, self.py],
+        pygame.draw.circle(A.game_specs.renderer.layers[len(A.game_specs.renderer.layers) - 2].display, self.color,
+                           [self.px, self.py],
                            int(self.radius) * A.player_zoom)
 
 
@@ -95,5 +97,8 @@ class PostProcessing_Renderer:
             effect = effect.replace(rep, "surface")
             eval(effect)  # IK ITS BAD IM TIRED
 
-    def RenderEffects(self):
-        self.renderEffectToSurface(self.mainSurf, self.effect_list)
+    def RenderEffects(self, surface=None):
+        if surface is None:
+            self.renderEffectToSurface(self.mainSurf, self.effect_list)
+        else:
+            self.renderEffectToSurface(surface, self.effect_list)

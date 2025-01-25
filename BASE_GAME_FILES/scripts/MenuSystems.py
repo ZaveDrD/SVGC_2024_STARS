@@ -37,6 +37,21 @@ class UI_Element:
         pass
 
 
+class Image(UI_Element):
+
+    def __init__(self, pos: list[float], img_path: str, scale=1):
+        super().__init__(pos, Colour((0, 0, 0)))
+        self.x = pos[0]
+        self.y = pos[1]
+        self.img = pygame.image.load(img_path)
+        self.img = pygame.transform.scale(self.img, (int(self.img.get_width() * scale), int(self.img.get_height() * scale)))
+    def display(self):
+        A.game_specs.renderer.layers[0].display.blit(self.img, (self.x, self.y))
+
+    def is_clicked(self) -> bool:
+        pass
+
+
 class Rect_Panel(UI_Element):
     def __init__(self, pos: list[float], size: list[float], color: Colour, opacity: int = 255,
                  outlineThickness: int = 0, roundness: list[int] = [1, 1, 1, 1]):
@@ -51,7 +66,7 @@ class Rect_Panel(UI_Element):
     def display(self):
         if not self.show: return
         self.bounds = pygame.Rect(self.x, self.y, self.width, self.height)
-        pygame.draw.rect(A.game_specs.UI_renderer.layers[0].display, self.color,
+        pygame.draw.rect(A.game_specs.renderer.layers[0].display, self.color,
                          self.bounds, width=self.outlineThickness,
                          border_top_left_radius=self.roundness[0], border_top_right_radius=self.roundness[1],
                          border_bottom_right_radius=self.roundness[2],
@@ -75,7 +90,7 @@ class Geometric_Panel(UI_Element):
 
     def display(self):
         if not self.show: return
-        self.col = pygame.draw.polygon(A.game_specs.UI_renderer.layers[0].display, self.color, self.points, width=self.outlineThickness)
+        self.col = pygame.draw.polygon(A.game_specs.renderer.layers[0].display, self.color, self.points, width=self.outlineThickness)
 
     def is_clicked(self) -> bool:
         return False  # IDK how to do this yet
@@ -90,7 +105,7 @@ class Circular_Panel(UI_Element):
 
     def display(self):
         if not self.show: return
-        pygame.draw.circle(A.game_specs.UI_renderer.layers[0].display, self.color, [self.x, self.y], self.radius, width=self.outlineThickness,
+        pygame.draw.circle(A.game_specs.renderer.layers[0].display, self.color, [self.x, self.y], self.radius, width=self.outlineThickness,
                            draw_top_left=self.corners[0], draw_top_right=self.corners[1],
                            draw_bottom_right=self.corners[2], draw_bottom_left=self.corners[3])
 
@@ -160,7 +175,7 @@ class Toggle(UI_Element):
         self.toggleColour = toggleColour
         self.bgColour = self.color
 
-        self.__rect = Rect_Button(size, pos, toggleColour, function=self.clicked, roundness=[30, 30, 30, 30])
+        self.__rect = Rect_Button(size, pos, toggleColour, function=self.clicked, roundness=[15, 15, 15, 15])
         self.__circle = Circular_Button(size[1]//3, (self.x+self.size[0]-self.size[0]//4, self.y+self.size[1]-self.size[1]//2), bgColour,
                                       function=self.clicked)
         self.isSet = default
@@ -185,8 +200,8 @@ class Toggle(UI_Element):
 
     def display(self):
         if not self.show: return
-        self.__circle.color = self.toggleColour[self.isSet]
-        self.__rect.color = self.bgColour[self.isSet]
+        self.__circle.color = self.toggleColour
+        self.__rect.color = self.bgColour
         self.__rect.display()
         self.__circle.display()
 
@@ -206,7 +221,6 @@ class Text(UI_Element):
         self.size = size
         self.position = position
         self.font = font
-
 
     def display(self):
         surfaces = []
@@ -245,7 +259,7 @@ class Text(UI_Element):
         elif self.position == 'mid-right':
             textRect.midright = self.pos
 
-        A.game_specs.display.blit(combinedSurface, textRect)
+        A.game_specs.renderer.layers[0].display.blit(combinedSurface, textRect)
 
 
 class Slider(UI_Element):
@@ -286,7 +300,6 @@ class Slider(UI_Element):
     def updateX(self):
         mouseCoord = A.mouse.get_pos()
         # Confirm the mouse is within the rectangle
-        print(self.size[0])
         if not (self.pos[0] + self.slider.width / 2 <= mouseCoord[0] <= self.pos[0] + self.size[0] - self.slider.width / 2):
             # Is not within the x-range of the container
             return
@@ -322,6 +335,7 @@ class Menu:
 
     def updateMenu(self):
         for UI in self.elements:
-            UI.display()
-            if UI.button:
-                UI.checkForInputs()
+            if UI.show:
+                UI.display()
+                if UI.button:
+                    UI.checkForInputs()

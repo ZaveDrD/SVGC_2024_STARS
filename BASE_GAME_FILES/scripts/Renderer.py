@@ -6,6 +6,8 @@
 import pygame
 import operator
 
+import PygameShader
+
 from BASE_GAME_FILES.scripts.AestheticSystems import PostProcessing_Renderer
 
 
@@ -46,7 +48,8 @@ class Renderer:
             if self.use_pp: layer.post_processing_renderer.RenderEffects()
             self.game_specs.screen.blit(pygame.transform.scale(layer.display, self.game_specs.screen.get_size()), (0, 0))
             layer.reset_layer()
-        if self.use_pp: self.post_processing_renderer.RenderEffects()
+        if self.use_pp: self.post_processing_renderer.RenderEffects(self.game_specs.screen)
+
         pygame.display.update()
 
     def add_layer(self, layer: RenderLayer):

@@ -11,6 +11,7 @@ class Player(PhysSim.Spacecraft):
         self.phys_sim = phys_sim
         self.endGoal = endGoal
 
+        self.won = False
         self.alive = True
 
     def updatePhys(self, phys_sim):
@@ -31,10 +32,8 @@ class Player(PhysSim.Spacecraft):
 
     def checkForLevelEnd(self):
         if self.merged and self.merged_to == self.endGoal:
-            print("WIN")
+            self.won = True
 
     def checkForPlayerDeath(self):
         if self.merged and self.merged_to != self.endGoal:
             self.alive = False
-            print("DEAD")
-

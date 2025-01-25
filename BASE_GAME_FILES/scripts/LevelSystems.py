@@ -6,7 +6,7 @@ import BASE_GAME_FILES.scripts.Player as P
 import BASE_GAME_FILES.data.Assets as Assets
 
 class Level:
-    def __init__(self, levelName, bodies, playerStartPos, endGoalPos, isMenu=False, usePhysics=True):
+    def __init__(self, levelName, bodies, playerStartPos, endGoalPos, abilityMaxActivations: list[tuple[str, int]] = None, isMenu=False, usePhysics=True):
         self.levelName = levelName
         self.isMenu = isMenu
         self.usePhysics = usePhysics
@@ -14,6 +14,8 @@ class Level:
 
         self.playerStartPos = playerStartPos
         self.endGoalPos = endGoalPos
+
+        self.abilityMaxActivation = abilityMaxActivations
 
         self.playerBody = None
         self.endGoal = None
@@ -33,6 +35,7 @@ class Level:
             self.bodies = copy.deepcopy(self.levelSaveState.initial_bodies)
             self.playerBody = self.levelSaveState.playerBody
             self.actorParams = copy.deepcopy(self.levelSaveState.actorParams)
+            self.abilityMaxActivation = copy.deepcopy(self.levelSaveState.abilityMaxActivation)
 
     def load_actor_level_data(self):
         A.player_view_pos_x, A.player_view_pos_y, A.player_zoom = self.actorParams[0], self.actorParams[1], self.actorParams[2]
@@ -89,7 +92,7 @@ class LevelLoader:
         if self.currentLevel.usePhysics: self.currentLevelPhysSim = PhysicsSimulation.PhysicsSim(self.currentLevel.bodies)
         self.currentLevel.playerBody.updatePhys(self.currentLevelPhysSim)
 
-        A.selected_level = levelIndex
+        A.selected_level = levelIndex+1
 
     def load_level_name(self, levelName: str, saveState=False):
         for levelIndex, level in enumerate(self.levels):
